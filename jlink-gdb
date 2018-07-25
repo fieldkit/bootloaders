@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PATH=~/tools/JLink_Linux_V618c_x86_64:$PATH
+
+JLinkGDBServer -if SWD -device ATSAMD21G18

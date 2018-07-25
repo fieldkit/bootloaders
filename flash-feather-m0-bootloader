@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PATH=~/tools/JLink_Linux_V618c_x86_64:$PATH
+
+JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 -autoconnect 1 -commanderscript flash-feather-m0-bootloader.jlink
