@@ -86,4 +86,6 @@ void uart_write_buffer_polled(Sercom *sercom, uint8_t *ptr, uint16_t length);
  */
 void uart_read_buffer_polled(Sercom *sercom, uint8_t *ptr, uint16_t length);
 
+void uart_flush(Sercom *sercom);
+
 #endif

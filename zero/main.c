@@ -23,6 +23,7 @@
 #include "sam_ba_serial.h"
 #include "board_definitions.h"
 #include "board_driver_led.h"
+#include "board_driver_serial.h"
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
 
@@ -149,6 +150,28 @@ uint32_t* pulSketch_Start_Address;
 #	define DEBUG_PIN_LOW 	do{}while(0)
 #endif
 
+#include "serial5.h"
+
+int jacob_test() {
+    board_init();
+    __enable_irq();
+
+    LED_init();
+
+    /* Start the sys tick (1 ms) */
+    SysTick_Config(1000);
+
+    serial5_open();
+
+    serial5_puts("Bootloader Ready\n");
+
+    serial5_flush();
+
+    serial5_close();
+
+    return 0;
+}
+
 /**
  *  \brief SAMD21 SAM-BA Main loop.
  *  \return Unused (ANSI-C compatibility).
@@ -159,6 +182,8 @@ int main(void)
   P_USB_CDC pCdc;
 #endif
   DEBUG_PIN_HIGH;
+
+  jacob_test();
 
   /* Jump in application if condition is satisfied */
   check_start_application();

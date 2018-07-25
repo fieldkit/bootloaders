@@ -102,3 +102,10 @@ void uart_read_buffer_polled(Sercom *sercom, uint8_t *ptr, uint16_t length)
 		*ptr++ = (uint8_t)sercom->USART.DATA.reg;
 	} while (length--);
 }
+
+void uart_flush(Sercom *sercom) {
+  if (sercom->USART.INTFLAG.bit.DRE) {
+    return;
+  }
+  while(!sercom->USART.INTFLAG.bit.TXC);
+}
