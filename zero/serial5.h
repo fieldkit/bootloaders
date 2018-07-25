@@ -11,9 +11,7 @@ void serial5_close();
 
 void serial5_putc(uint8_t value);
 
-void serial5_puts(const char *ptr);
-
-void serial5_write(const uint8_t *ptr);
+void serial5_printf(const char *ptr, ...);
 
 void serial5_flush();
 
