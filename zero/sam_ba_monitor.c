@@ -395,6 +395,8 @@ static void sam_ba_monitor_loop(void)
 
         uint32_t dst_addr = current_number; // starting address
 
+        serial5_printf("Erase 0x%x (-> 0x%x)\n", dst_addr, MAX_FLASH);
+
         while (dst_addr < MAX_FLASH)
         {
           // Execute "ER" Erase Row
@@ -433,6 +435,8 @@ static void sam_ba_monitor_loop(void)
           uint32_t *src_addr = src_buff_addr;
           uint32_t *dst_addr = (uint32_t*)ptr_data;
 
+          serial5_printf("Write\n");
+
           // Set automatic page write
           NVMCTRL->CTRLB.bit.MANW = 0;
 
@@ -469,6 +473,7 @@ static void sam_ba_monitor_loop(void)
       }
       else if (command == 'Z')
       {
+        serial5_printf("CRC\n");
         // This command calculate CRC for a given area of memory.
         // It's useful to quickly check if a transfer has been done
         // successfully.

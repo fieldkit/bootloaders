@@ -135,10 +135,10 @@ uint32_t* pulSketch_Start_Address;
 
 //  LED_on();
 
-  serial5_printf("Program: %x\n", __sketch_vectors_ptr);
+  serial5_printf("Program: 0x%x\n", __sketch_vectors_ptr);
   serial5_flush();
 
-  return;
+  // return;
 
   /* Rebase the Stack Pointer */
   __set_MSP( (uint32_t)(__sketch_vectors_ptr) );
@@ -176,10 +176,13 @@ int firmware_check() {
     uint8_t buffer[8] = { 0 };
 
     flash_read(&fmem, 65536, buffer, sizeof(buffer));
+
+    serial5_printf("Data: ");
     for (uint8_t i = 0; i < sizeof(buffer); ++i) {
-        serial5_printf("%c", buffer[i]);
+        serial5_printf("%x ", buffer[i]);
     }
     serial5_printf("\n");
+    serial5_printf("Done\n");
 
     flash_close(&fmem);
 
@@ -212,9 +215,6 @@ int main(void)
   /* Jump in application if condition is satisfied */
   check_start_application();
 
-  serial5_printf("Waiting...\n");
-  serial5_flush();
-
   /* We have determined we should stay in the monitor. */
   /* System initialization */
   // board_init();
@@ -242,6 +242,9 @@ int main(void)
   SysTick_Config(1000);
 
   firmware_check();
+
+  serial5_printf("Waiting...\n");
+  serial5_flush();
 
   /* Wait for a complete enum on usb or a '#' char on serial line */
   while (1)
