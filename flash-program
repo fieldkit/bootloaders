@@ -1,7 +1,12 @@
 #!/bin/bash
 
-ls -alh /dev/tty*modem*
+UNAME=`uname`
 
-sudo ~/tools/lib/flasher/bossac_osx -d --port=$1 -U -i -e -w -R --offset=16384 blink/build/blink.bin
+if [[ "$UNAME" == "Linux" ]]; then
+    sudo ~/tools/lib/flasher/bossac_linux -d --port=$1 -U -i -e -w -R --offset=16384 blink/build/blink.bin
+fi
 
-# sudo ~/tools/lib/flasher/bossac_linux -d --port=$1 -U -i -e -w -R --offset=16384 blink/build/blink.bin
+if [[ "$UNAME" == "Darwin" ]]; then
+    ls -alh /dev/tty*modem*
+    sudo ~/tools/lib/flasher/bossac_osx -d --port=$1 -U -i -e -w -R --offset=16384 blink/build/blink.bin
+fi
