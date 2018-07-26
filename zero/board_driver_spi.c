@@ -183,97 +183,80 @@ PinDescription g_APinDescription[] = {
 #define INPUT_PULLUP    (0x2)
 #define INPUT_PULLDOWN  (0x3)
 
-void pinMode( uint32_t ulPin, uint32_t ulMode )
-{
-  // Handle the case the pin isn't usable as PIO
-  if ( g_APinDescription[ulPin].ulPinType == PIO_NOT_A_PIN )
-  {
-    return ;
-  }
+void pinMode(uint32_t ulPin, uint32_t ulMode) {
+    // Handle the case the pin isn't usable as PIO
+    if (g_APinDescription[ulPin].ulPinType == PIO_NOT_A_PIN) {
+        return ;
+    }
 
-  // Set pin mode according to chapter '22.6.3 I/O Pin Configuration'
-  switch ( ulMode )
-  {
-    case INPUT:
-      // Set pin to input mode
-      PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN) ;
-      PORT->Group[g_APinDescription[ulPin].ulPort].DIRCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin) ;
-    break ;
-
-    case INPUT_PULLUP:
-      // Set pin to input mode with pull-up resistor enabled
-      PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN|PORT_PINCFG_PULLEN) ;
-      PORT->Group[g_APinDescription[ulPin].ulPort].DIRCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin) ;
-
-      // Enable pull level (cf '22.6.3.2 Input Configuration' and '22.8.7 Data Output Value Set')
-      PORT->Group[g_APinDescription[ulPin].ulPort].OUTSET.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin) ;
-    break ;
-
-    case INPUT_PULLDOWN:
-      // Set pin to input mode with pull-down resistor enabled
-      PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN|PORT_PINCFG_PULLEN) ;
-      PORT->Group[g_APinDescription[ulPin].ulPort].DIRCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin) ;
-
-      // Enable pull level (cf '22.6.3.2 Input Configuration' and '22.8.6 Data Output Value Clear')
-      PORT->Group[g_APinDescription[ulPin].ulPort].OUTCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin) ;
-    break ;
-
-    case OUTPUT:
-      // enable input, to support reading back values, with pullups disabled
-      PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN) ;
-
-      // Set pin to output mode
-      PORT->Group[g_APinDescription[ulPin].ulPort].DIRSET.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin) ;
-    break ;
-
+    // Set pin mode according to chapter '22.6.3 I/O Pin Configuration'
+    switch (ulMode) {
+    case INPUT: {
+        // Set pin to input mode
+        PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN);
+        PORT->Group[g_APinDescription[ulPin].ulPort].DIRCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin);
+        break;
+    }
+    case INPUT_PULLUP: {
+        // Set pin to input mode with pull-up resistor enabled
+        PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN|PORT_PINCFG_PULLEN);
+        PORT->Group[g_APinDescription[ulPin].ulPort].DIRCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin);
+        // Enable pull level (cf '22.6.3.2 Input Configuration' and '22.8.7 Data Output Value Set')
+        PORT->Group[g_APinDescription[ulPin].ulPort].OUTSET.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin);
+        break;
+    }
+    case INPUT_PULLDOWN: {
+        // Set pin to input mode with pull-down resistor enabled
+        PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN|PORT_PINCFG_PULLEN);
+        PORT->Group[g_APinDescription[ulPin].ulPort].DIRCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin);
+        // Enable pull level (cf '22.6.3.2 Input Configuration' and '22.8.6 Data Output Value Clear')
+        PORT->Group[g_APinDescription[ulPin].ulPort].OUTCLR.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin);
+        break;
+    }
+    case OUTPUT: {
+        // Enable input, to support reading back values, with pullups disabled
+        PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg=(uint8_t)(PORT_PINCFG_INEN);
+        // Set pin to output mode
+        PORT->Group[g_APinDescription[ulPin].ulPort].DIRSET.reg = (uint32_t)(1<<g_APinDescription[ulPin].ulPin);
+        break;
+    }
     default:
-      // do nothing
-    break ;
-  }
+        break;
+    }
 }
 
+int pinPeripheral(uint32_t ulPin, EPioType ulPeripheral) {
+    // Handle the case the pin isn't usable as PIO
+    if (g_APinDescription[ulPin].ulPinType == PIO_NOT_A_PIN) {
+        return -1;
+    }
 
-int pinPeripheral( uint32_t ulPin, EPioType ulPeripheral )
-{
-  // Handle the case the pin isn't usable as PIO
-  if ( g_APinDescription[ulPin].ulPinType == PIO_NOT_A_PIN )
-  {
-    return -1 ;
-  }
-
-  switch ( ulPeripheral )
-  {
+    switch (ulPeripheral)
+    {
     case PIO_DIGITAL:
     case PIO_INPUT:
     case PIO_INPUT_PULLUP:
-    case PIO_OUTPUT:
-      // Disable peripheral muxing, done in pinMode
-//			PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].bit.PMUXEN = 0 ;
-
-      // Configure pin mode, if requested
-      if ( ulPeripheral == PIO_INPUT )
-      {
-        pinMode( ulPin, INPUT ) ;
-      }
-      else
-      {
-        if ( ulPeripheral == PIO_INPUT_PULLUP )
-        {
-          pinMode( ulPin, INPUT_PULLUP ) ;
+    case PIO_OUTPUT: {
+        // Configure pin mode, if requested
+        if (ulPeripheral == PIO_INPUT) {
+            pinMode(ulPin, INPUT);
         }
         else
         {
-          if ( ulPeripheral == PIO_OUTPUT )
-          {
-            pinMode( ulPin, OUTPUT ) ;
-          }
-          else
-          {
-            // PIO_DIGITAL, do we have to do something as all cases are covered?
-          }
+            if (ulPeripheral == PIO_INPUT_PULLUP) {
+                pinMode( ulPin, INPUT_PULLUP);
+            }
+            else {
+                if ( ulPeripheral == PIO_OUTPUT) {
+                    pinMode(ulPin, OUTPUT);
+                }
+                else {
+                    // PIO_DIGITAL, do we have to do something as all cases are covered?
+                }
+            }
         }
-      }
-    break ;
+        break;
+    }
 
     case PIO_ANALOG:
     case PIO_SERCOM:
@@ -282,41 +265,37 @@ int pinPeripheral( uint32_t ulPin, EPioType ulPeripheral )
     case PIO_TIMER_ALT:
     case PIO_EXTINT:
     case PIO_COM:
-    case PIO_AC_CLK:
-      if ( g_APinDescription[ulPin].ulPin & 1 ) // is pin odd?
-      {
-        uint32_t temp ;
+    case PIO_AC_CLK: {
+        if (g_APinDescription[ulPin].ulPin & 1) {
+            uint32_t temp;
+            // Get whole current setup for both odd and even pins and remove odd one
+            temp = (PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg) & PORT_PMUX_PMUXE(0xF);
+            // Set new muxing
+            PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg = temp|PORT_PMUX_PMUXO(ulPeripheral);
+            // Enable port mux
+            PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg |= PORT_PINCFG_PMUXEN;
+        }
+        else {
+            uint32_t temp;
+            temp = (PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg) & PORT_PMUX_PMUXO(0xF);
+            PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg = temp|PORT_PMUX_PMUXE(ulPeripheral);
+            PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg |= PORT_PINCFG_PMUXEN; // Enable port mux
+        }
+        break;
+    }
 
-        // Get whole current setup for both odd and even pins and remove odd one
-        temp = (PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg) & PORT_PMUX_PMUXE( 0xF ) ;
-        // Set new muxing
-        PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg = temp|PORT_PMUX_PMUXO( ulPeripheral ) ;
-        // Enable port mux
-        PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg |= PORT_PINCFG_PMUXEN ;
-      }
-      else // even pin
-      {
-        uint32_t temp ;
+    case PIO_NOT_A_PIN: {
+        return -1l;
+        break;
+    }
+    }
 
-        temp = (PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg) & PORT_PMUX_PMUXO( 0xF ) ;
-        PORT->Group[g_APinDescription[ulPin].ulPort].PMUX[g_APinDescription[ulPin].ulPin >> 1].reg = temp|PORT_PMUX_PMUXE( ulPeripheral ) ;
-        PORT->Group[g_APinDescription[ulPin].ulPort].PINCFG[g_APinDescription[ulPin].ulPin].reg |= PORT_PINCFG_PMUXEN ; // Enable port mux
-      }
-    break ;
-
-    case PIO_NOT_A_PIN:
-      return -1l ;
-    break ;
-  }
-
-  return 0l ;
+    return 0l;
 }
 
-void digitalWrite( uint32_t ulPin, uint32_t ulVal )
-{
+void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
     // Handle the case the pin isn't usable as PIO
-    if ( g_APinDescription[ulPin].ulPinType == PIO_NOT_A_PIN )
-    {
+    if (g_APinDescription[ulPin].ulPinType == PIO_NOT_A_PIN) {
         return ;
     }
 
@@ -324,56 +303,51 @@ void digitalWrite( uint32_t ulPin, uint32_t ulVal )
     uint32_t pin = g_APinDescription[ulPin].ulPin;
     uint32_t pinMask = (1ul << pin);
 
-    if ( (PORT->Group[port].DIRSET.reg & pinMask) == 0 ) {
+    if ((PORT->Group[port].DIRSET.reg & pinMask) == 0) {
         // the pin is not an output, disable pull-up if val is LOW, otherwise enable pull-up
-        PORT->Group[port].PINCFG[pin].bit.PULLEN = ((ulVal == LOW) ? 0 : 1) ;
+        PORT->Group[port].PINCFG[pin].bit.PULLEN = ((ulVal == LOW) ? 0 : 1);
     }
 
-    switch ( ulVal )
-    {
+    switch (ulVal) {
     case LOW:
         PORT->Group[port].OUTCLR.reg = pinMask;
-        break ;
+        break;
 
     default:
         PORT->Group[port].OUTSET.reg = pinMask;
-        break ;
+        break;
     }
 
-    return ;
+    return;
 }
-typedef enum
-{
+
+typedef enum {
     MSB_FIRST = 0,
     LSB_FIRST
 } SercomDataOrder;
 
-typedef enum
-{
+typedef enum {
     SERCOM_RX_PAD_0 = 0,
     SERCOM_RX_PAD_1,
     SERCOM_RX_PAD_2,
     SERCOM_RX_PAD_3
 } SercomRXPad;
 
-typedef enum
-{
+typedef enum {
     SERCOM_SPI_MODE_0 = 0,	// CPOL : 0  | CPHA : 0
     SERCOM_SPI_MODE_1,		// CPOL : 0  | CPHA : 1
     SERCOM_SPI_MODE_2,		// CPOL : 1  | CPHA : 0
     SERCOM_SPI_MODE_3		// CPOL : 1  | CPHA : 1
 } SercomSpiClockMode;
 
-typedef enum
-{
+typedef enum {
     SPI_PAD_0_SCK_1 = 0,
     SPI_PAD_2_SCK_3,
     SPI_PAD_3_SCK_1,
     SPI_PAD_0_SCK_3
 } SercomSpiTXPad;
 
-typedef enum
-{
+typedef enum {
     SPI_CHAR_SIZE_8_BITS = 0x0ul,
     SPI_CHAR_SIZE_9_BITS
 } SercomSpiCharSize;
@@ -452,15 +426,15 @@ uint8_t spi_transfer(uint8_t data) {
 }
 
 static inline void cs_setup() {
-    PORT->Group[CS_PORT].DIRSET.reg = (1<<CS_PIN);
+    PORT->Group[CS_PORT].DIRSET.reg = (1 << CS_PIN);
 }
 
 static inline void cs_assert() {
-    PORT->Group[CS_PORT].OUTCLR.reg = (1<<CS_PIN); 
+    PORT->Group[CS_PORT].OUTCLR.reg = (1 << CS_PIN);
 }
 
 static inline void cs_release() {
-    PORT->Group[CS_PORT].OUTSET.reg = (1<<CS_PIN); 
+    PORT->Group[CS_PORT].OUTSET.reg = (1 << CS_PIN);
 }
 
 void spi_config() {
