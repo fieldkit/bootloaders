@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <sam.h>
 
+#define F_CPU           (48000000L)
+
 #define LOW             (0x0)
 #define HIGH            (0x1)
 

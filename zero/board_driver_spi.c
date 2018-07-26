@@ -1,7 +1,6 @@
 #include "board_driver_spi.h"
 #include "wiring.h"
 
-#define F_CPU                   48000000L
 #define SERCOM_FREQ_REF         48000000
 #define SERCOM_NVIC_PRIORITY    ((1 << __NVIC_PRIO_BITS) - 1)
 #define SPI_MIN_CLOCK_DIVIDER   (uint8_t)(1 + ((F_CPU - 1) / 12000000))
@@ -115,6 +114,25 @@ uint8_t spi_transfer(uint8_t data) {
     while (SERCOM4->SPI.INTFLAG.bit.RXC == 0) {
     }
     return SERCOM4->SPI.DATA.bit.DATA;
+}
+
+uint16_t spi_transfer_word(uint16_t data) {
+    union { uint16_t val; struct { uint8_t lsb; uint8_t msb; }; } t;
+
+    t.val = data;
+    t.msb = spi_transfer(t.msb);
+    t.lsb = spi_transfer(t.lsb);
+
+    return t.val;
+}
+
+uint8_t spi_transfer_block(void *ptr, size_t n) {
+    uint8_t *bytes = (uint8_t *)ptr;
+    for (size_t i = 0; i < n; ++i) {
+        *bytes = spi_transfer(*bytes);
+        bytes++;
+    }
+    return 0;
 }
 
 void spi_config() {

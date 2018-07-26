@@ -174,7 +174,17 @@ int firmware_check() {
 
     serial5_printf("Opening Flash...\n");
 
-    flash_open(26);
+    flash_memory fmem;
+    flash_open(&fmem, 26);
+    uint8_t buffer[8] = { 0 };
+
+    flash_read(&fmem, 65536, buffer, sizeof(buffer));
+    for (uint8_t i = 0; i < sizeof(buffer); ++i) {
+        serial5_printf("%c", buffer[i]);
+    }
+    serial5_printf("\n");
+
+    flash_close(&fmem);
 
     serial5_flush();
 
