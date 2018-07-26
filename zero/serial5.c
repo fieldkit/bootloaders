@@ -20,7 +20,6 @@ void serial5_open() {
     uint32_t port;
     uint32_t pin;
 
-    /*
     // Start the Software Reset
     COMM_USART_MODULE->USART.CTRLA.bit.SWRST = 1 ;
 
@@ -31,7 +30,6 @@ void serial5_open() {
 
     //Reset (with 0) the STATUS register
     COMM_USART_MODULE->USART.STATUS.reg = SERCOM_USART_STATUS_RESETVALUE;
-    */
 
     if (COMM_USART_PAD2 != PINMUX_UNUSED)
     {
@@ -58,7 +56,7 @@ void serial5_open() {
     NVIC_SetPriority(SERCOM5_IRQn, SERCOM_NVIC_PRIORITY);  /* set Priority */
 
     /* Enable clock for BOOT_USART_MODULE */
-    PM->APBCMASK.reg |= COMM_USART_BUS_CLOCK_INDEX ;
+    PM->APBCMASK.reg |= COMM_USART_BUS_CLOCK_INDEX;
 
     /* Set GCLK_GEN0 as source for GCLK_ID_SERCOMx_CORE */
     GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID( COMM_USART_PER_CLOCK_INDEX ) | // Generic Clock 0 (SERCOMx)
@@ -81,7 +79,8 @@ void serial5_open() {
 
 void serial5_close() {
     if (opened) {
-        // uart_disable(COMM_USART_MODULE);
+        uart_disable(COMM_USART_MODULE);
+        opened = false;
     }
 }
 

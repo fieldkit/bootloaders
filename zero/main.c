@@ -23,9 +23,11 @@
 #include "sam_ba_serial.h"
 #include "board_definitions.h"
 #include "board_driver_led.h"
-#include "board_driver_serial.h"
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
+
+#include "board_driver_spi.h"
+#include "serial5.h"
 
 extern uint32_t __sketch_vectors_ptr; // Exported value from linker script
 extern void board_init(void);
@@ -132,6 +134,11 @@ uint32_t* pulSketch_Start_Address;
 
 //  LED_on();
 
+  serial5_printf("Program: %x\n", __sketch_vectors_ptr);
+  serial5_flush();
+
+  return;
+
   /* Rebase the Stack Pointer */
   __set_MSP( (uint32_t)(__sketch_vectors_ptr) );
 
@@ -150,24 +157,25 @@ uint32_t* pulSketch_Start_Address;
 #	define DEBUG_PIN_LOW 	do{}while(0)
 #endif
 
-#include "serial5.h"
-
-int jacob_test() {
-    board_init();
-    __enable_irq();
-
-    LED_init();
-
-    /* Start the sys tick (1 ms) */
-    SysTick_Config(1000);
-
+int firmware_check() {
     serial5_open();
 
-    serial5_puts("Bootloader Ready\n");
+    serial5_printf("Bootloader Ready\n");
+
+    for (uint32_t i=0; i<125000 * 10; i++) {
+        /* force compiler to not optimize this... */
+        __asm__ __volatile__("");
+    }
+
+    serial5_printf("Opening SPI\n");
+
+    spi_open();
+
+    serial5_printf("Done, SPI ready\n");
 
     serial5_flush();
 
-    serial5_close();
+    serial5_printf("Waiting...\n");
 
     return 0;
 }
@@ -182,8 +190,6 @@ int main(void)
   P_USB_CDC pCdc;
 #endif
   DEBUG_PIN_HIGH;
-
-  jacob_test();
 
   /* Jump in application if condition is satisfied */
   check_start_application();
@@ -213,6 +219,8 @@ int main(void)
 
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
+
+  firmware_check();
 
   /* Wait for a complete enum on usb or a '#' char on serial line */
   while (1)
