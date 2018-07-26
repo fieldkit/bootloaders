@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo /home/jlewallen/tools/lib/flasher/bossac_linux -d --port=ttyACM0 -U -i -e -w -v -R --offset=16384 ./blink.bin

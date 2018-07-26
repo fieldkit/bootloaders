@@ -94,7 +94,8 @@ SOURCES= \
   sam_ba_cdc.c \
   sam_ba_monitor.c \
   sam_ba_serial.c \
-	serial5.c
+	serial5.c \
+	board_driver_spi.c
 
 OBJECTS=$(addprefix $(BUILD_PATH)/, $(SOURCES:.c=.o))
 DEPS=$(addprefix $(BUILD_PATH)/, $(SOURCES:.c=.d))
