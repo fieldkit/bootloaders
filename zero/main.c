@@ -26,8 +26,9 @@
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
 
-#include "board_driver_spi.h"
 #include "serial5.h"
+#include "board_driver_spi.h"
+#include "flash_memory.h"
 
 extern uint32_t __sketch_vectors_ptr; // Exported value from linker script
 extern void board_init(void);
@@ -167,11 +168,13 @@ int firmware_check() {
         __asm__ __volatile__("");
     }
 
-    serial5_printf("Opening SPI\n");
+    serial5_printf("Opening SPI...\n");
 
     spi_open();
 
-    serial5_printf("Done, SPI ready\n");
+    serial5_printf("Opening Flash...\n");
+
+    flash_open(26);
 
     serial5_flush();
 

@@ -9,6 +9,8 @@ void spi_open();
 
 uint8_t spi_begin();
 
+uint8_t spi_transfer(uint8_t data);
+
 uint8_t spi_end();
 
 void spi_close();
