@@ -161,12 +161,9 @@ uint32_t* pulSketch_Start_Address;
 int firmware_check() {
     serial5_open();
 
-    serial5_printf("Bootloader Ready\n");
+    serial5_printf("\n");
 
-    for (uint32_t i=0; i<125000 * 10; i++) {
-        /* force compiler to not optimize this... */
-        __asm__ __volatile__("");
-    }
+    serial5_printf("Bootloader Ready\n");
 
     serial5_printf("Opening SPI...\n");
 
@@ -188,7 +185,13 @@ int firmware_check() {
 
     serial5_flush();
 
-    serial5_printf("Waiting...\n");
+    return 0;
+}
+
+int firmware_check_before_launch() {
+    board_init();
+
+    firmware_check();
 
     return 0;
 }
@@ -204,12 +207,17 @@ int main(void)
 #endif
   DEBUG_PIN_HIGH;
 
+  firmware_check_before_launch();
+
   /* Jump in application if condition is satisfied */
   check_start_application();
 
+  serial5_printf("Waiting...\n");
+  serial5_flush();
+
   /* We have determined we should stay in the monitor. */
   /* System initialization */
-  board_init();
+  // board_init();
   __enable_irq();
 
 #if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
