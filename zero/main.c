@@ -135,7 +135,7 @@ uint32_t* pulSketch_Start_Address;
 
 //  LED_on();
 
-  serial5_printf("Program: 0x%x\n", __sketch_vectors_ptr);
+  serial5_printf("Program: 0x%x\n\r", __sketch_vectors_ptr);
   serial5_flush();
 
   // return;
@@ -161,15 +161,16 @@ uint32_t* pulSketch_Start_Address;
 int firmware_check() {
     serial5_open();
 
-    serial5_printf("\n");
+    serial5_println("");
+    serial5_println("");
 
-    serial5_printf("Bootloader Ready\n");
+    serial5_println("Bootloader Ready");
 
-    serial5_printf("Opening SPI...\n");
+    serial5_println("Opening SPI...");
 
     spi_open();
 
-    serial5_printf("Opening Flash...\n");
+    serial5_println("Opening Flash...");
 
     flash_memory fmem;
     flash_open(&fmem, 26);
@@ -181,8 +182,8 @@ int firmware_check() {
     for (uint8_t i = 0; i < sizeof(buffer); ++i) {
         serial5_printf("%x ", buffer[i]);
     }
-    serial5_printf("\n");
-    serial5_printf("Done\n");
+    serial5_println("");
+    serial5_println("Done");
 
     flash_close(&fmem);
 
@@ -210,6 +211,7 @@ int main(void)
 #endif
   DEBUG_PIN_HIGH;
 
+  /* Check for a firmware update. */
   firmware_check_before_launch();
 
   /* Jump in application if condition is satisfied */
@@ -217,7 +219,8 @@ int main(void)
 
   /* We have determined we should stay in the monitor. */
   /* System initialization */
-  // board_init();
+  serial5_close();
+  board_init();
   __enable_irq();
 
 #if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
@@ -243,7 +246,7 @@ int main(void)
 
   firmware_check();
 
-  serial5_printf("Waiting...\n");
+  serial5_println("Waiting...");
   serial5_flush();
 
   /* Wait for a complete enum on usb or a '#' char on serial line */

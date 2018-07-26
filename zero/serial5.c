@@ -92,6 +92,27 @@ void serial5_putc(uint8_t value) {
     uart_write_byte(COMM_USART_MODULE, value);
 }
 
+void serial5_vprintf(const char *f, va_list args) {
+    char buffer[128];
+    vsnprintf(buffer, sizeof(buffer), f, args);
+    for (const char *p = buffer; *p != 0; p++) {
+        serial5_putc(*p);
+    }
+}
+
+void serial5_println(const char *f, ...) {
+    if (!opened) {
+        return;
+    }
+
+    va_list args;
+    va_start(args, f);
+    serial5_vprintf(f, args);
+    serial5_putc('\r');
+    serial5_putc('\n');
+    va_end(args);
+}
+
 void serial5_printf(const char *f, ...) {
     if (!opened) {
         return;
@@ -99,13 +120,8 @@ void serial5_printf(const char *f, ...) {
 
     va_list args;
     va_start(args, f);
-    char buffer[128];
-    vsnprintf(buffer, sizeof(buffer), f, args);
+    serial5_vprintf(f, args);
     va_end(args);
-
-    for (const char *p = buffer; *p != 0; p++) {
-        serial5_putc(*p);
-    }
 }
 
 void serial5_flush() {

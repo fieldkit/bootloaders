@@ -248,7 +248,7 @@ void flash_open(flash_memory *flash, uint8_t cs) {
 
     uint32_t size = flash_calculate_capacity(flash);
 
-    serial5_printf("Size: %lu\n", size);
+    serial5_println("Size: %lu", size);
 }
 
 void flash_close(flash_memory *flash) {
