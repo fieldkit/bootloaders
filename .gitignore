@@ -2,3 +2,5 @@ build
 zero/samd21_sam_ba.bin
 zero/samd21_sam_ba.hex
 .gdb_history
+secrets.h
+gitdeps
