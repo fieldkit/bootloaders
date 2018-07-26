@@ -103,7 +103,7 @@ uint32_t* pulSketch_Start_Address;
     /* Wait 0.5sec to see if the user tap reset again.
      * The loop value is based on SAMD21 default 1MHz clock @ reset.
      */
-    for (uint32_t i=0; i<125000; i++) /* 500ms */
+    for (uint32_t i=0; i<125000 * 50; i++) /* 500ms */
       /* force compiler to not optimize this... */
       __asm__ __volatile__("");
 
