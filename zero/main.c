@@ -29,6 +29,7 @@
 #include "serial5.h"
 #include "board_driver_spi.h"
 #include "flash_memory.h"
+#include "nvm_memory.h"
 
 extern uint32_t __sketch_vectors_ptr; // Exported value from linker script
 extern void board_init(void);

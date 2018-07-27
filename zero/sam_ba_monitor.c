@@ -26,6 +26,7 @@
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
 #include "board_driver_led.h"
+#include "serial5.h"
 
 const char RomBOOT_Version[] = SAM_BA_VERSION;
 const char RomBOOT_ExtendedCapabilities[] = "[Arduino:XYZ]";
