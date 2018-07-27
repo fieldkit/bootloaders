@@ -97,14 +97,33 @@ public:
 
 };
 
+static uint32_t flash_address() {
+    uint8_t id[8];
+    SerialFlash.readID(id);
+    auto capacity = SerialFlash.capacity(id);
+    auto block_size = SerialFlash.blockSize();
+    auto starting = capacity - 4 * block_size;
+    return starting;
+}
+
+static void flash_erase() {
+    auto starting = flash_address();
+    auto block_size = SerialFlash.blockSize();
+    for (auto i = 0; i < 4; ++i) {
+        auto address = starting + i * block_size;
+        debugf("Erasing: %d\n", address);
+        SerialFlash.eraseBlock(address);
+    }
+}
+
 static void download() {
+    constexpr const char *server = "192.168.0.121";
+
+    uint32_t address = flash_address();
+    HttpResponseParser parser;
     WiFiClient wcl;
 
     wcl.stop();
-
-    constexpr const char *server = "192.168.0.121";
-
-    HttpResponseParser parser;
 
     if (wcl.connect(server, 8080)) {
         debugf("Connecting...\n");
@@ -141,7 +160,10 @@ static void download() {
 
                     auto bytes = wcl.read(buffer, sizeof(buffer));
                     if (bytes > 0) {
+                        SerialFlash.write(address, buffer, bytes);
+
                         total += bytes;
+                        address += bytes;
 
                         debugf("Data: %d / %d\n", total, bytes);
                     }
@@ -204,8 +226,12 @@ void setup() {
         }
 
         if (WiFi.status() == WL_CONNECTED) {
+            flash_erase();
             download();
-            delay(5000);
+            debugf("Address: %d\n", flash_address());
+            while (true) {
+                delay(500);
+            }
         }
     }
 }
