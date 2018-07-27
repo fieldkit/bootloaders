@@ -2,14 +2,13 @@
 #include "platform.h"
 
 void platform_setup() {
-    pinMode(5, OUTPUT);
-    pinMode(12, OUTPUT);
-    pinMode(7, OUTPUT);
-    pinMode(PIN_FLASH, OUTPUT);
+    pinMode(RFM95_PIN_CS, OUTPUT);
+    pinMode(SD_PIN_CS, OUTPUT);
+    pinMode(WIFI_PIN_CS, OUTPUT);
+    pinMode(FLASH_PIN, OUTPUT);
 
-    digitalWrite(5, HIGH);
-    digitalWrite(12, HIGH);
-    digitalWrite(7, HIGH);
-    digitalWrite(PIN_FLASH, HIGH);
+    digitalWrite(RFM95_PIN_CS, HIGH);
+    digitalWrite(SD_PIN_CS, HIGH);
+    digitalWrite(WIFI_PIN_CS, HIGH);
+    digitalWrite(FLASH_PIN, HIGH);
 }
-

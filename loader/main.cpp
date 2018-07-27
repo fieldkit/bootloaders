@@ -4,7 +4,16 @@
 #include <WiFi101.h>
 #include <SerialFlash.h>
 
+#include "http_response_parser.h"
+
 #include "secrets.h"
+
+#define FLASH_FIRMWARE_BANK_ADDRESS          (1572864)
+#define FLASH_FIRMWARE_BANK_SIZE             (256 * 1024)
+#define FLASH_FIRMWARE_BANK_1_ADDRESS        (1572864)
+#define FLASH_FIRMWARE_BANK_2_ADDRESS        (1572864 + FLASH_FIRMWARE_BANK_SIZE)
+#define FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_1_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
+#define FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_2_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
 
 static constexpr uint8_t WIFI_PIN_CS = 7u;
 static constexpr uint8_t WIFI_PIN_IRQ = 16u;
@@ -67,61 +76,34 @@ static const char *getWifiStatus(uint8_t status) {
     }
 }
 
-class HttpResponseParser {
-private:
-    bool reading_header_{ true };
-    uint8_t consecutive_{ 0 };
-    uint8_t previous_{ 0 };
-
-public:
-    bool reading_header() {
-        return reading_header_;
-    }
-
-public:
-    void write(uint8_t c) {
-        debugf("%c", c);
-        if (c == '\n' || c == '\r') {
-            if (c == '\n' && previous_ == '\r') {
-                consecutive_++;
-                if (consecutive_ == 2) {
-                    reading_header_ = false;
-                }
-            }
-        }
-        else {
-            consecutive_ = 0;
-        }
-        previous_ = c;
-    }
-
-};
-
-static uint32_t flash_address() {
-    uint8_t id[8];
-    SerialFlash.readID(id);
-    auto capacity = SerialFlash.capacity(id);
-    auto block_size = SerialFlash.blockSize();
-    auto starting = capacity - 4 * block_size;
-    return starting;
-}
-
 static void flash_erase() {
-    auto starting = flash_address();
+    auto starting = FLASH_FIRMWARE_BANK_1_ADDRESS;
     auto block_size = SerialFlash.blockSize();
-    for (auto i = 0; i < 4; ++i) {
+    auto address = starting;
+
+    debugf("Erasing: %d -> %d\n", starting, starting + block_size * 8);
+
+    for (auto i = 0; i < 8; ++i) {
         auto address = starting + i * block_size;
-        debugf("Erasing: %d\n", address);
         SerialFlash.eraseBlock(address);
     }
 }
 
+typedef struct firmware_header_t {
+    uint32_t version;
+    uint32_t position;
+    uint32_t size;
+    uint8_t reserved[64 - (4 * 3)];
+} firmware_header_t;
+
 static void download() {
+    fk::HttpResponseParser parser;
+    WiFiClient wcl;
+
     constexpr const char *server = "192.168.0.141";
 
-    uint32_t address = flash_address();
-    HttpResponseParser parser;
-    WiFiClient wcl;
+    uint32_t starting = FLASH_FIRMWARE_BANK_1_ADDRESS;
+    uint32_t address = starting;
 
     wcl.stop();
 
@@ -152,8 +134,7 @@ static void download() {
 
             while (wcl.available()) {
                 if (parser.reading_header()) {
-                    auto c = wcl.read();
-                    parser.write(c);
+                    parser.write(wcl.read());
                 }
                 else {
                     uint8_t buffer[512];
@@ -164,16 +145,17 @@ static void download() {
 
                         total += bytes;
                         address += bytes;
-
-                        debugf("Data: %d / %d\n", total, bytes);
                     }
                 }
             }
         }
 
+        firmware_header_t header = { 1, starting, parser.content_length() };
+        SerialFlash.write(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &header, sizeof(header));
+
         wcl.stop();
 
-        debugf("Done!\n");
+        debugf("Done! (%d bytes)\n", total);
     }
     else {
         debugf("Connection failed\n");
@@ -228,7 +210,7 @@ void setup() {
         if (WiFi.status() == WL_CONNECTED) {
             flash_erase();
             download();
-            debugf("Address: %d\n", flash_address());
+            debugf("Address: %d\n", FLASH_FIRMWARE_BANK_1_ADDRESS);
             while (true) {
                 delay(500);
             }

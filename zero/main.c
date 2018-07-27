@@ -28,12 +28,11 @@
 
 #include "serial5.h"
 #include "platform.h"
-#include "board_driver_spi.h"
-#include "flash_memory.h"
-#include "nvm_memory.h"
+#include "firmware.h"
 
-extern uint32_t __sketch_vectors_ptr; // Exported value from linker script
-extern void board_init(void);
+extern uint32_t __sketch_vectors_ptr;
+
+extern void board_initialize(void);
 
 #if (defined DEBUG) && (DEBUG == 1)
 volatile uint32_t* pulSketch_Start_Address;
@@ -160,97 +159,6 @@ uint32_t* pulSketch_Start_Address;
 #	define DEBUG_PIN_LOW 	do{}while(0)
 #endif
 
-typedef struct firmware_header_t {
-    uint32_t position;
-    uint32_t size;
-} firmware_header_t;
-
-int firmware_flash(flash_memory_t *fmem) {
-    firmware_header_t header = {
-        1835008,
-        24260
-    };
-
-    uint32_t PageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
-    uint32_t page_size = PageSizes[NVMCTRL->PARAM.bit.PSZ];
-    uint32_t pages = NVMCTRL->PARAM.bit.NVMP;
-    uint32_t flash_size = page_size * pages;
-
-    uint8_t buffer[1024];
-
-    serial5_println("Flash: page-size=%d pages=%d", page_size, pages);
-
-    uint32_t writing = 0x4000;
-
-    serial5_println("Flash: Erasing (0x%x)", writing);
-
-    nvm_erase_after(writing);
-
-    uint32_t bytes = 0;
-    uint32_t reading = header.position;
-
-    while (bytes < header.size) {
-        serial5_println("Flash: Writing 0x%x -> 0x%x -> 0x%x (%d)", reading, buffer, writing, bytes);
-        flash_read(fmem, reading, buffer, sizeof(buffer));
-
-        nvm_write((uint32_t *)writing, (uint32_t *)buffer, sizeof(buffer) / 4);
-
-        reading += sizeof(buffer);
-        writing += sizeof(buffer);
-        bytes += sizeof(buffer);
-    }
-
-    return 0;
-}
-
-int firmware_check(bool flash) {
-    platform_setup();
-
-    serial5_open();
-
-    serial5_println("");
-    serial5_println("");
-
-    serial5_println("Bootloader Ready");
-
-    serial5_println("Opening SPI...");
-
-    spi_open();
-
-    serial5_println("Opening Flash...");
-
-    flash_memory_t fmem;
-    flash_open(&fmem, 26);
-    uint8_t buffer[8] = { 0 };
-
-    flash_read(&fmem, 65536, buffer, sizeof(buffer));
-
-    serial5_printf("Data: ");
-    for (uint8_t i = 0; i < sizeof(buffer); ++i) {
-        serial5_printf("%x ", buffer[i]);
-    }
-    serial5_println("");
-    serial5_println("Done");
-
-    if (flash) {
-        firmware_flash(&fmem);
-    }
-
-    flash_close(&fmem);
-
-    serial5_flush();
-
-    return 0;
-}
-
-int firmware_check_before_launch() {
-    board_init();
-
-    firmware_check(false);
-
-    return 0;
-}
-
 /**
  *  \brief SAMD21 SAM-BA Main loop.
  *  \return Unused (ANSI-C compatibility).
@@ -271,7 +179,7 @@ int main(void)
   /* We have determined we should stay in the monitor. */
   /* System initialization */
   serial5_close();
-  board_init();
+  board_initialize();
   __enable_irq();
 
 #if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES

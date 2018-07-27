@@ -21,7 +21,7 @@
 #include "board_definitions.h"
 
 /**
- * \brief system_init() configures the needed clocks and according Flash Read Wait States.
+ * \brief board_initialize() configures the needed clocks and according Flash Read Wait States.
  * At reset:
  * - OSC8M clock source is enabled with a divider by 8 (1MHz).
  * - Generic Clock Generator 0 (GCLKMAIN) is using OSC8M as source.
@@ -42,7 +42,7 @@
 // Constants for Clock multiplexers
 #define GENERIC_CLOCK_MULTIPLEXER_DFLL48M (0u)
 
-void board_init(void)
+void board_initialize(void)
 {
   /* Set 1 Flash Wait State for 48MHz, cf tables 20.9 and 35.27 in SAMD21 Datasheet */
   NVMCTRL->CTRLB.bit.RWS = NVMCTRL_CTRLB_RWS_HALF_Val;

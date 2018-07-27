@@ -106,10 +106,8 @@ void Reset_Handler( void )
     }
   }
 
-//  board_init(); // will be done in main() after app check
-
   /* Initialize the C library */
-//  __libc_init_array();
+  //  __libc_init_array();
 
   main();
 
