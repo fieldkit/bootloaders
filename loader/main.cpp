@@ -117,7 +117,7 @@ static void flash_erase() {
 }
 
 static void download() {
-    constexpr const char *server = "192.168.0.121";
+    constexpr const char *server = "192.168.0.141";
 
     uint32_t address = flash_address();
     HttpResponseParser parser;
