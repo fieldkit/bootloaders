@@ -37,8 +37,9 @@ static void leds(uint8_t value) {
 }
 
 static void panic(const char *message) {
-    Serial5.println(message);
-    
+    debugf(message);
+    debugf("\n");
+
     while (true) {
         delay(100);
         leds(HIGH);
@@ -66,90 +67,49 @@ static const char *getWifiStatus(uint8_t status) {
     }
 }
 
-void upload(size_t length, size_t buffer_size) {
-    WiFiClient wcl;
+class HttpResponseParser {
+private:
+    bool reading_header_{ true };
+    uint8_t consecutive_{ 0 };
+    uint8_t previous_{ 0 };
 
-    wcl.stop();
+public:
+    bool reading_header() {
+        return reading_header_;
+    }
 
-    constexpr const char *server = "192.168.5.148";
-
-    if (wcl.connect(server, 8080)) {
-        Serial.println("Connecting...");
-        wcl.println("POST /data.bin HTTP/1.1");
-        wcl.print("Host: "); wcl.println(server);
-        wcl.println("Content-Type: application/octet");
-        wcl.print("Content-Length: "); wcl.println(length);
-        wcl.println("User-Agent: ArduinoWiFi/1.1");
-        wcl.println("Connection: close");
-        wcl.println();
-
-        Serial5.println("Connected...");
-
-        auto uploadStarted = millis();
-        auto lastStatus = 0;
-        auto uploaded = 0;
-        auto lastByte = 0;
-        auto totalTimeInWrite = 0;
-        auto timeInWrite = 0;
-        uint8_t data[buffer_size];
-        memset(data, 0xdf, sizeof(data));
-
-        while (uploaded < length) {
-            auto writeStarted = millis();
-            auto wrote = wcl.write(data, sizeof(data));
-            auto writeEnded = millis();
-            if (wrote < 0) {
-                debugf("Failed to write!\n\r");
-                break;
-            }
-            if (wcl.getWriteError()) {
-                debugf("Write Error! (%d)\n\r", wcl.getWriteError());
-                break;
-            }
-
-            if (wrote > 0) {
-                lastByte = millis();
-            }
-
-            totalTimeInWrite += writeEnded - writeStarted;
-            timeInWrite += writeEnded - writeStarted;
-
-            if (false && writeEnded - writeStarted > 1000) {
-                debugf("Long call to write: %dms\n\r", writeEnded - writeStarted);
-            }
-
-            uploaded += wrote;
-            if (millis() - lastStatus > 1000 || uploaded == length) {
-                auto elapsed = (millis() - uploadStarted) / 1000.0f;
-                auto complete = (uploaded / (float)length) * 100.0f;
-                auto speed = ((uploaded / 1024.f) / (float)elapsed);
-                auto rssi = WiFi.RSSI();
-                debugf("Upload: %d/%d speed = %fkb/s complete = %f (%d) (tiw = %dms) (ttiw = %dms) (rssi = %d)\n\r", uploaded, length, speed, complete, buffer_size, timeInWrite, totalTimeInWrite, rssi);
-                lastStatus = millis();
-
-                timeInWrite = 0;
+public:
+    void write(uint8_t c) {
+        debugf("%c", c);
+        if (c == '\n' || c == '\r') {
+            if (c == '\n' && previous_ == '\r') {
+                consecutive_++;
+                if (consecutive_ == 2) {
+                    reading_header_ = false;
+                }
             }
         }
+        else {
+            consecutive_ = 0;
+        }
+        previous_ = c;
+    }
 
-        Serial5.println("Stopping");
-        wcl.stop();
-    }
-    else {
-        Serial5.println("Connection failed");
-    }
-}
+};
 
 static void download() {
     WiFiClient wcl;
 
     wcl.stop();
 
-    constexpr const char *server = "192.168.5.148";
+    constexpr const char *server = "192.168.0.121";
+
+    HttpResponseParser parser;
 
     if (wcl.connect(server, 8080)) {
-        Serial5.println("Connecting...");
+        debugf("Connecting...\n");
 
-        wcl.println("GET /data.bin HTTP/1.1");
+        wcl.println("GET /blink.bin HTTP/1.1");
         wcl.print("Host: "); wcl.println(server);
         wcl.println("User-Agent: ArduinoWiFi/1.1");
         wcl.println("Connection: close");
@@ -158,45 +118,43 @@ static void download() {
 
         delay(100);
 
-        Serial5.println("Downloading...");
+        debugf("Downloading...\n");
 
         auto started = millis();
-       
-        while (true) {
+        auto total = 0;
+
+        while (wcl.connected() || wcl.available()) {
             delay(10);
 
-            while (wcl.available()) {
-                Serial5.println("Read");
-                char c = wcl.read();
-                Serial5.write(c);
-            }
-
             if (millis() - started > 10000) {
-                Serial5.println("Fail");
+                debugf("Fail\n");
                 break;
             }
 
-            #if 0
-            if (wcl.available() > 0) {
-                uint8_t buffer[512];
+            while (wcl.available()) {
+                if (parser.reading_header()) {
+                    auto c = wcl.read();
+                    parser.write(c);
+                }
+                else {
+                    uint8_t buffer[512];
 
-                Serial5.println("Data");
+                    auto bytes = wcl.read(buffer, sizeof(buffer));
+                    if (bytes > 0) {
+                        total += bytes;
 
-                if (wcl.read(buffer, sizeof(buffer)) > 0) {
-                    Serial5.println("Data");
+                        debugf("Data: %d / %d\n", total, bytes);
+                    }
                 }
             }
-            #endif
         }
-
-        Serial5.println("Stopping...");
 
         wcl.stop();
 
-        Serial5.println("Done!");
+        debugf("Done!\n");
     }
     else {
-        Serial5.println("Connection failed");
+        debugf("Connection failed\n");
     }
 }
 
@@ -229,32 +187,25 @@ void setup() {
     }
 
     auto fv = WiFi.firmwareVersion();
-    Serial5.print("Version: ");
-    Serial5.println(fv);
-
-    Serial5.println("Connecting...");
+    debugf("Version: %s\n", fv);
+    debugf("Connecting...\n");
 
     WiFi.begin(WifiSsid, WifiPassword);
 
-    Serial5.println("Ready!");
+    debugf("Ready!\n");
 
     auto statusAt = millis();
     auto done = false;
 
     while (true) {
         if (millis() - statusAt > 1000) {
-            Serial5.print(getWifiStatus(WiFi.status()));
-            Serial5.println("");
+            debugf("%s\n", getWifiStatus(WiFi.status()));
             statusAt = millis();
         }
 
-        if (WiFi.status() == WL_CONNECTED && !done) {
-            delay(1000);
-
-            upload(1024 * 1024, 1024);
-
+        if (WiFi.status() == WL_CONNECTED) {
             download();
-            done = true;
+            delay(5000);
         }
     }
 }
