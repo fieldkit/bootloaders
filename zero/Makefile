@@ -97,6 +97,7 @@ SOURCES= \
 	serial5.c \
 	board_driver_spi.c \
 	wiring.c \
+	nvm_memory.c \
 	flash_memory.c
 
 OBJECTS=$(addprefix $(BUILD_PATH)/, $(SOURCES:.c=.o))
