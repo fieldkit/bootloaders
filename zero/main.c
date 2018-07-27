@@ -27,6 +27,7 @@
 #include "sam_ba_cdc.h"
 
 #include "serial5.h"
+#include "platform.h"
 #include "board_driver_spi.h"
 #include "flash_memory.h"
 #include "nvm_memory.h"
@@ -203,6 +204,8 @@ int firmware_flash(flash_memory_t *fmem) {
 }
 
 int firmware_check(bool flash) {
+    platform_setup();
+
     serial5_open();
 
     serial5_println("");

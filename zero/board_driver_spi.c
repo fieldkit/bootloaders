@@ -1,16 +1,9 @@
 #include "board_driver_spi.h"
 #include "wiring.h"
+#include "platform.h"
 
-#define SERCOM_FREQ_REF         48000000
 #define SERCOM_NVIC_PRIORITY    ((1 << __NVIC_PRIO_BITS) - 1)
 #define SPI_MIN_CLOCK_DIVIDER   (uint8_t)(1 + ((F_CPU - 1) / 12000000))
-
-#define PIN_SPI_MISO         (22u)
-#define PIN_SPI_MOSI         (23u)
-#define PIN_SPI_SCK          (24u)
-#define PAD_SPI_TX           SPI_PAD_2_SCK_3
-#define PAD_SPI_RX           SERCOM_RX_PAD_0
-#define PIN_FLASH            (26u)
 
 typedef enum {
     MSB_FIRST = 0,
@@ -26,9 +19,9 @@ typedef enum {
 
 typedef enum {
     SERCOM_SPI_MODE_0 = 0,	// CPOL : 0  | CPHA : 0
-    SERCOM_SPI_MODE_1,		// CPOL : 0  | CPHA : 1
-    SERCOM_SPI_MODE_2,		// CPOL : 1  | CPHA : 0
-    SERCOM_SPI_MODE_3		// CPOL : 1  | CPHA : 1
+    SERCOM_SPI_MODE_1,		  // CPOL : 0  | CPHA : 1
+    SERCOM_SPI_MODE_2,		  // CPOL : 1  | CPHA : 0
+    SERCOM_SPI_MODE_3		    // CPOL : 1  | CPHA : 1
 } SercomSpiClockMode;
 
 typedef enum {
@@ -45,11 +38,11 @@ typedef enum {
 
 static void spi_restart() {
     SERCOM4->SPI.CTRLA.bit.SWRST = 1;
-    while(SERCOM4->SPI.CTRLA.bit.SWRST || SERCOM4->SPI.SYNCBUSY.bit.SWRST);
+    while (SERCOM4->SPI.CTRLA.bit.SWRST || SERCOM4->SPI.SYNCBUSY.bit.SWRST) { }
 }
 
 static uint8_t calculate_baudrate(uint32_t baudrate) {
-    return SERCOM_FREQ_REF / (2 * baudrate) - 1;
+    return F_CPU / (2 * baudrate) - 1;
 }
 
 static void spi_initialize(SercomSpiTXPad mosi, SercomRXPad miso, SercomSpiCharSize charSize, SercomDataOrder dataOrder, SercomSpiClockMode clockMode, uint32_t baudrate) {
@@ -64,8 +57,7 @@ static void spi_initialize(SercomSpiTXPad mosi, SercomRXPad miso, SercomSpiCharS
   // Setting clock
   GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCLK_CLKCTRL_ID_SERCOM4_CORE_Val) | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_CLKEN;
 
-  while ( GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY ) {
-  }
+  while (GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) { }
 
   // Setting the CTRLA register
   SERCOM4->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_MODE_SPI_MASTER |
@@ -99,20 +91,17 @@ static void spi_initialize(SercomSpiTXPad mosi, SercomRXPad miso, SercomSpiCharS
 
 static void spi_enable() {
     SERCOM4->SPI.CTRLA.bit.ENABLE = 1;
-    while (SERCOM4->SPI.SYNCBUSY.bit.ENABLE) {
-    }
+    while (SERCOM4->SPI.SYNCBUSY.bit.ENABLE) { }
 }
 
 static void spi_disable() {
-    while (SERCOM4->SPI.SYNCBUSY.bit.ENABLE) {
-    }
+    while (SERCOM4->SPI.SYNCBUSY.bit.ENABLE) { }
     SERCOM4->SPI.CTRLA.bit.ENABLE = 0;
 }
 
 uint8_t spi_transfer(uint8_t data) {
     SERCOM4->SPI.DATA.bit.DATA = data;
-    while (SERCOM4->SPI.INTFLAG.bit.RXC == 0) {
-    }
+    while (SERCOM4->SPI.INTFLAG.bit.RXC == 0) { }
     return SERCOM4->SPI.DATA.bit.DATA;
 }
 
@@ -157,21 +146,7 @@ uint8_t spi_end() {
     return 0;
 }
 
-void platform_setup() {
-    pinMode(5, OUTPUT);
-    pinMode(12, OUTPUT);
-    pinMode(7, OUTPUT);
-    pinMode(PIN_FLASH, OUTPUT);
-
-    digitalWrite(5, HIGH);
-    digitalWrite(12, HIGH);
-    digitalWrite(7, HIGH);
-    digitalWrite(PIN_FLASH, HIGH);
-}
-
 void spi_open() {
-    platform_setup();
-
     pinPeripheral(PIN_SPI_MISO, g_APinDescription[PIN_SPI_MISO].ulPinType);
     pinPeripheral(PIN_SPI_SCK, g_APinDescription[PIN_SPI_SCK].ulPinType);
     pinPeripheral(PIN_SPI_MOSI, g_APinDescription[PIN_SPI_MOSI].ulPinType);
