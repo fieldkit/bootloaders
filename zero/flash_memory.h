@@ -15,4 +15,10 @@ void flash_read(flash_memory *flash, uint32_t addr, void *buf, uint32_t len);
 
 void flash_close(flash_memory *flash);
 
+void nvm_erase_row(uint32_t *d);
+
+void nvm_erase_after(uint32_t address);
+
+void nvm_write(uint32_t *d, uint32_t *src, uint32_t nwords);
+
 #endif // _DRIVER_FLASH_MEMORY_H_

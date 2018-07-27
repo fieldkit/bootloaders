@@ -395,7 +395,7 @@ static void sam_ba_monitor_loop(void)
 
         uint32_t dst_addr = current_number; // starting address
 
-        serial5_println("Erase 0x%x (-> 0x%x)", dst_addr, MAX_FLASH);
+        serial5_println("Erase 0x%x -> 0x%x", dst_addr, MAX_FLASH);
 
         while (dst_addr < MAX_FLASH)
         {
@@ -435,7 +435,7 @@ static void sam_ba_monitor_loop(void)
           uint32_t *src_addr = src_buff_addr;
           uint32_t *dst_addr = (uint32_t*)ptr_data;
 
-          serial5_println("Write");
+          serial5_println("Write 0x%x -> 0x%x (%d)", src_addr, dst_addr, size);
 
           // Set automatic page write
           NVMCTRL->CTRLB.bit.MANW = 0;

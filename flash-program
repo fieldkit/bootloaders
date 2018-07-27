@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OFFSET=16384
-OFFSET=8192
+# OFFSET=8192
 UNAME=`uname`
 
 if [[ "$UNAME" == "Linux" ]]; then

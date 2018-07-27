@@ -135,7 +135,7 @@ uint32_t* pulSketch_Start_Address;
 
 //  LED_on();
 
-  serial5_printf("Program: 0x%x\n\r", __sketch_vectors_ptr);
+  serial5_printf("Program: 0x%x (0x%x)\n\r", __sketch_vectors_ptr, &__sketch_vectors_ptr);
   serial5_flush();
 
   // return;
@@ -158,7 +158,50 @@ uint32_t* pulSketch_Start_Address;
 #	define DEBUG_PIN_LOW 	do{}while(0)
 #endif
 
-int firmware_check() {
+typedef struct firmware_header_t {
+    uint32_t position;
+    uint32_t size;
+} firmware_header_t;
+
+int firmware_flash(flash_memory *fmem) {
+    firmware_header_t header = {
+        1835008,
+        24260
+    };
+
+    uint32_t PageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
+    uint32_t page_size = PageSizes[NVMCTRL->PARAM.bit.PSZ];
+    uint32_t pages = NVMCTRL->PARAM.bit.NVMP;
+    uint32_t flash_size = page_size * pages;
+
+    uint8_t buffer[1024];
+
+    serial5_println("Flash: page-size=%d pages=%d", page_size, pages);
+
+    uint32_t writing = 0x4000;
+
+    serial5_println("Flash: Erasing (0x%x)", writing);
+
+    nvm_erase_after(writing);
+
+    uint32_t bytes = 0;
+    uint32_t reading = header.position;
+
+    while (bytes < header.size) {
+        serial5_println("Flash: Writing 0x%x -> 0x%x -> 0x%x (%d)", reading, buffer, writing, bytes);
+        flash_read(fmem, reading, buffer, sizeof(buffer));
+
+        nvm_write((uint32_t *)writing, (uint32_t *)buffer, sizeof(buffer) / 4);
+
+        reading += sizeof(buffer);
+        writing += sizeof(buffer);
+        bytes += sizeof(buffer);
+    }
+
+    return 0;
+}
+
+int firmware_check(bool flash) {
     serial5_open();
 
     serial5_println("");
@@ -185,6 +228,10 @@ int firmware_check() {
     serial5_println("");
     serial5_println("Done");
 
+    if (flash) {
+        firmware_flash(&fmem);
+    }
+
     flash_close(&fmem);
 
     serial5_flush();
@@ -195,7 +242,7 @@ int firmware_check() {
 int firmware_check_before_launch() {
     board_init();
 
-    firmware_check();
+    firmware_check(false);
 
     return 0;
 }
@@ -244,7 +291,7 @@ int main(void)
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
 
-  firmware_check();
+  firmware_check(false);
 
   serial5_println("Waiting...");
   serial5_flush();
