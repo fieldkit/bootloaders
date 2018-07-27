@@ -163,7 +163,7 @@ typedef struct firmware_header_t {
     uint32_t size;
 } firmware_header_t;
 
-int firmware_flash(flash_memory *fmem) {
+int firmware_flash(flash_memory_t *fmem) {
     firmware_header_t header = {
         1835008,
         24260
@@ -215,7 +215,7 @@ int firmware_check(bool flash) {
 
     serial5_println("Opening Flash...");
 
-    flash_memory fmem;
+    flash_memory_t fmem;
     flash_open(&fmem, 26);
     uint8_t buffer[8] = { 0 };
 

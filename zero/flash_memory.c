@@ -45,15 +45,15 @@ static __inline__ void delay_microseconds(unsigned int usec) {
     // https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html#Volatile
 }
 
-static inline void flash_take(flash_memory *flash) {
+static inline void flash_take(flash_memory_t *flash) {
     digitalWrite(flash->cs, LOW);
 }
 
-static inline void flash_release(flash_memory *flash) {
+static inline void flash_release(flash_memory_t *flash) {
     digitalWrite(flash->cs, HIGH);
 }
 
-static uint32_t flash_read_id(flash_memory *flash, uint8_t *id) {
+static uint32_t flash_read_id(flash_memory_t *flash, uint8_t *id) {
     spi_begin();
     flash_take(flash);
     spi_transfer(0x9F);
@@ -70,7 +70,7 @@ static uint32_t flash_read_id(flash_memory *flash, uint8_t *id) {
     return 0;
 }
 
-static uint32_t flash_calculate_capacity(flash_memory *flash) {
+static uint32_t flash_calculate_capacity(flash_memory_t *flash) {
     uint8_t id[16] = { 0 };
 
     flash_read_id(flash, id);
@@ -92,7 +92,7 @@ static uint32_t flash_calculate_capacity(flash_memory *flash) {
     return n;
 }
 
-static uint32_t flash_block_size() {
+uint32_t flash_block_size(flash_memory_t *flash) {
     /*
     if (flags & FLAG_256K_BLOCKS) {
         return 262144;
@@ -101,7 +101,7 @@ static uint32_t flash_block_size() {
     return 65536;
 }
 
-void flash_wait(flash_memory *flash) {
+void flash_wait(flash_memory_t *flash) {
     uint32_t status;
     while (1) {
         spi_begin();
@@ -131,16 +131,13 @@ void flash_wait(flash_memory *flash) {
     // busy = 0;
 }
 
-void flash_read(flash_memory *flash, uint32_t addr, void *buf, uint32_t len) {
+void flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len) {
     uint8_t *p = (uint8_t *)buf;
-    uint8_t b, f, status, cmd;
-    uint8_t flags = 0;
+    uint8_t b, status, cmd;
     uint8_t busy = 0;
 
     memset(p, 0, len);
-    f = flags;
     spi_begin();
-    // SPIPORT.beginTransaction(SPICONFIG);
     b = busy;
     if (b) {
         // read status register ... chip may no longer be busy
@@ -243,7 +240,7 @@ void flash_read(flash_memory *flash, uint32_t addr, void *buf, uint32_t len) {
     spi_end();
 }
 
-void flash_open(flash_memory *flash, uint8_t cs) {
+void flash_open(flash_memory_t *flash, uint8_t cs) {
     flash->cs = cs;
 
     uint32_t size = flash_calculate_capacity(flash);
@@ -251,7 +248,7 @@ void flash_open(flash_memory *flash, uint8_t cs) {
     serial5_println("Size: %lu", size);
 }
 
-void flash_close(flash_memory *flash) {
+void flash_close(flash_memory_t *flash) {
 }
 
 static inline void nvm_ready(void) {
