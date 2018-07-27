@@ -14,6 +14,7 @@
 #define FLASH_FIRMWARE_BANK_2_ADDRESS        (1572864 + FLASH_FIRMWARE_BANK_SIZE)
 #define FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_1_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
 #define FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_2_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
+#define FIRMWARE_VERSION_INVALID              ((uint32_t)-1)
 
 static constexpr uint8_t WIFI_PIN_CS = 7u;
 static constexpr uint8_t WIFI_PIN_IRQ = 16u;
@@ -208,9 +209,17 @@ void setup() {
         }
 
         if (WiFi.status() == WL_CONNECTED) {
-            flash_erase();
-            download();
-            debugf("Address: %d\n", FLASH_FIRMWARE_BANK_1_ADDRESS);
+            firmware_header_t bank1;
+            SerialFlash.read(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &bank1, sizeof(bank1));
+            if (bank1.version != FIRMWARE_VERSION_INVALID) {
+                debugf("Bank1: version=%d size=%d\n", bank1.version, bank1.size);
+            }
+            else {
+                flash_erase();
+                download();
+                debugf("Address: %d\n", FLASH_FIRMWARE_BANK_1_ADDRESS);
+            }
+
             while (true) {
                 delay(500);
             }

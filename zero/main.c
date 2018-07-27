@@ -203,8 +203,6 @@ int main(void)
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
 
-  firmware_check(false);
-
   serial5_println("Waiting...");
   serial5_flush();
 

@@ -55,7 +55,7 @@ uint8_t firmware_flash(flash_memory_t *fmem, firmware_header_t *header) {
     return 0;
 }
 
-uint8_t firmware_check(uint8_t flash) {
+uint8_t firmware_check() {
     platform_setup();
 
     serial5_open();
@@ -71,14 +71,20 @@ uint8_t firmware_check(uint8_t flash) {
     serial5_println("Opening serial flash...");
 
     flash_memory_t fmem;
-    flash_open(&fmem, FLASH_PIN);
+    if (!flash_open(&fmem, FLASH_PIN)) {
+        serial5_println("Error opening serial flash");
+        return 0;
+    }
 
     uint32_t block_size = flash_block_size(&fmem);
 
-    serial5_println("Reading state...");
+    serial5_println("Opening phylum...");
 
     flash_memory_phylum_t phylum;
-    phylum_open(&phylum, &fmem);
+    if (!phylum_open(&phylum, &fmem)) {
+        serial5_println("Error opening phylum");
+        return 0;
+    }
 
     firmware_header_t bank1;
     firmware_header_t bank2;
@@ -132,7 +138,7 @@ uint8_t firmware_check(uint8_t flash) {
 uint8_t firmware_check_before_launch() {
     board_initialize();
 
-    firmware_check(false);
+    firmware_check();
 
     return 0;
 }

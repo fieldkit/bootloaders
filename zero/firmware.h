@@ -11,7 +11,6 @@ typedef struct firmware_header_t {
     uint8_t reserved[64 - (4 * 3)];
 } firmware_header_t;
 
-uint8_t firmware_check(uint8_t flash);
 uint8_t firmware_check_before_launch();
 
 #endif // _FIRMWARE_H_

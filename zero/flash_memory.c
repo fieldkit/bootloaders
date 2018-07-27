@@ -131,7 +131,7 @@ void flash_wait(flash_memory_t *flash) {
     // busy = 0;
 }
 
-void flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len) {
+uint8_t flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len) {
     uint8_t *p = (uint8_t *)buf;
     uint8_t b, status, cmd;
     uint8_t busy = 0;
@@ -240,13 +240,16 @@ void flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len) {
     spi_end();
 }
 
-void flash_open(flash_memory_t *flash, uint8_t cs) {
+uint8_t flash_open(flash_memory_t *flash, uint8_t cs) {
     flash->cs = cs;
 
     uint32_t size = flash_calculate_capacity(flash);
 
     serial5_println("Size: %lu", size);
+
+    return size != 0 && size != ((uint32_t)-1);
 }
 
-void flash_close(flash_memory_t *flash) {
+uint8_t flash_close(flash_memory_t *flash) {
+    return 1;
 }

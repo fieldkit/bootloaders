@@ -9,12 +9,12 @@ typedef struct flash_memory_ {
     uint32_t block_size;
 } flash_memory_t;
 
-void flash_open(flash_memory_t *flash, uint8_t cs);
+uint8_t flash_open(flash_memory_t *flash, uint8_t cs);
 
 uint32_t flash_block_size(flash_memory_t *flash);
 
-void flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len);
+uint8_t flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len);
 
-void flash_close(flash_memory_t *flash);
+uint8_t flash_close(flash_memory_t *flash);
 
 #endif // _DRIVER_FLASH_MEMORY_H_
