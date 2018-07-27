@@ -14,10 +14,8 @@ build: gitdeps loader/secrets.h
 	mkdir -p build
 	cd build && cmake ../
 	cd build && make
-	cd zero && MODULE_PATH=~/conservify/arduino-1.8.3/packages/arduino BOARD_ID=arduino_zero NAME=samd21_sam_ba make
 
 clean:
 	rm -rf build
-	cd zero && MODULE_PATH=~/conservify/arduino-1.8.3/packages/arduino BOARD_ID=arduino_zero NAME=samd21_sam_ba make clean
 
 .PHONY: build
