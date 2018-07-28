@@ -9,5 +9,6 @@ set(ARDUINO_INCLUDE_CORE OFF)
 file(GLOB SOURCE_FILES *.c *.cpp)
 
 include_directories(./)
+include_directories(../include)
 
 arduino(fk-samd21-bootloader "${SOURCE_FILES}" "${LIBRARIES}")

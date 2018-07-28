@@ -9,5 +9,6 @@ file(GLOB SOURCE_FILES *.cpp)
 set(LIBRARIES SPI Wire)
 
 include_directories(./)
+include_directories(../include)
 
 arduino(loader "${SOURCE_FILES}" "${LIBRARIES}")

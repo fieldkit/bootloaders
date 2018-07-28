@@ -4,27 +4,12 @@
 #include <WiFi101.h>
 #include <SerialFlash.h>
 
+#include "firmware_header.h"
+
 #include "http_response_parser.h"
 #include "http_response_writer.h"
 
 #include "secrets.h"
-
-#define FLASH_FIRMWARE_BANK_ADDRESS          (1572864)
-#define FLASH_FIRMWARE_BANK_SIZE             (256 * 1024)
-#define FLASH_FIRMWARE_BANK_1_ADDRESS        (1572864)
-#define FLASH_FIRMWARE_BANK_2_ADDRESS        (1572864 + FLASH_FIRMWARE_BANK_SIZE)
-#define FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_1_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
-#define FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_2_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
-#define FIRMWARE_VERSION_INVALID             ((uint32_t)-1)
-#define FIRMWARE_HEADER_TAG_MAXIMUM          (32)
-
-typedef struct firmware_header_t {
-    uint32_t version;
-    uint32_t position;
-    uint32_t size;
-    char etag[FIRMWARE_HEADER_TAG_MAXIMUM];
-    uint8_t reserved[64 - (4 * 3) - FIRMWARE_HEADER_TAG_MAXIMUM];
-} firmware_header_t;
 
 static constexpr uint8_t WIFI_PIN_CS = 7u;
 static constexpr uint8_t WIFI_PIN_IRQ = 16u;

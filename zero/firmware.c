@@ -8,24 +8,12 @@
 #include "platform.h"
 #include "serial5.h"
 
-#define FIRMWARE_VERSION_INVALID              ((uint32_t)-1)
-
-#define FLASH_FIRMWARE_BANK_ADDRESS          (1572864)
-#define FLASH_FIRMWARE_BANK_SIZE             (256 * 1024)
-#define FLASH_FIRMWARE_BANK_1_ADDRESS        (1572864)
-#define FLASH_FIRMWARE_BANK_2_ADDRESS        (1572864 + FLASH_FIRMWARE_BANK_SIZE)
-#define FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_1_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
-#define FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_2_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
-
-#define NVM_PROGRAM_ADDRESS                  (0x4000)
-#define NVM_HEADER_ADDRESS                   ((void *)262144 - 2048)
-
 uint8_t firmware_flash(flash_memory_t *fmem, firmware_header_t *header) {
     uint32_t PageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
     uint32_t page_size = PageSizes[NVMCTRL->PARAM.bit.PSZ];
     uint32_t pages = NVMCTRL->PARAM.bit.NVMP;
     uint32_t flash_size = page_size * pages;
-    uint32_t writing = NVM_PROGRAM_ADDRESS;
+    uint32_t writing = FIRMWARE_NVM_PROGRAM_ADDRESS;
     uint32_t bytes = 0;
 
     serial5_println("Flash: Info: page-size=%d pages=%d", page_size, pages);
@@ -48,9 +36,9 @@ uint8_t firmware_flash(flash_memory_t *fmem, firmware_header_t *header) {
         bytes += sizeof(buffer);
     }
 
-    serial5_println("Flash: Header 0x%x", NVM_HEADER_ADDRESS);
+    serial5_println("Flash: Header 0x%x", FIRMWARE_NVM_HEADER_ADDRESS);
 
-    nvm_write((uint32_t *)NVM_HEADER_ADDRESS, (uint32_t *)header, sizeof(firmware_header_t) / sizeof(uint32_t));
+    nvm_write((uint32_t *)FIRMWARE_NVM_HEADER_ADDRESS, (uint32_t *)header, sizeof(firmware_header_t) / sizeof(uint32_t));
 
     return 0;
 }
@@ -109,7 +97,7 @@ uint8_t firmware_check() {
     }
 
     firmware_header_t running;
-    memcpy(&running, (void *)NVM_HEADER_ADDRESS, sizeof(running));
+    memcpy(&running, (void *)FIRMWARE_NVM_HEADER_ADDRESS, sizeof(running));
     if (running.version != FIRMWARE_VERSION_INVALID) {
         serial5_println("Flash: version=%d size=%d (%s)", running.version, running.size, running.etag);
     }
