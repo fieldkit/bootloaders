@@ -15,6 +15,8 @@ uint32_t flash_block_size(flash_memory_t *flash);
 
 uint8_t flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len);
 
+uint8_t flash_erase(flash_memory_t *flash, uint32_t addr);
+
 uint8_t flash_close(flash_memory_t *flash);
 
 #endif // _DRIVER_FLASH_MEMORY_H_

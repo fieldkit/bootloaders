@@ -16,4 +16,6 @@ typedef struct firmware_header_t {
 
 uint8_t firmware_check_before_launch();
 
+uint8_t firmware_backups_erase();
+
 #endif // _FIRMWARE_H_

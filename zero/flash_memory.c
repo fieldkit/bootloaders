@@ -250,6 +250,28 @@ uint8_t flash_open(flash_memory_t *flash, uint8_t cs) {
     return size != 0 && size != ((uint32_t)-1);
 }
 
+uint8_t flash_erase(flash_memory_t *flash, uint32_t addr) {
+    flash_wait(flash);
+
+    spi_begin();
+    flash_take(flash);
+    spi_transfer(0x06); // write enable command
+    flash_release(flash);
+    delay_microseconds(1);
+    flash_take(flash);
+    if (false/*f & FLAG_32BIT_ADDR*/) {
+        spi_transfer(0xD8);
+        spi_transfer_word(addr >> 16);
+        spi_transfer_word(addr);
+    } else {
+        spi_transfer_word(0xD800 | ((addr >> 16) & 255));
+        spi_transfer_word(addr);
+    }
+    flash_release(flash);
+    spi_end();
+    return 1;
+}
+
 uint8_t flash_close(flash_memory_t *flash) {
     return 1;
 }

@@ -107,14 +107,15 @@ static void download(firmware_header_t *existing) {
 
     wcl.stop();
 
-    debugf("Connecting...\n");
-
-    const char *url = "http://192.168.0.121:8080/blink.bin";
+    const char *url = "http://192.168.0.121:8080/loader.bin";
     const auto length = strlen(url) + 1;
     char urlCopy[length];
     strncpy(urlCopy, url, length);
     fk::Url parsed(urlCopy);
 
+    debugf("GET %s\n", url);
+
+    debugf("Connecting...\n");
 
     if (wcl.connect(parsed.server, parsed.port)) {
         fk::OutgoingHttpHeaders headers{

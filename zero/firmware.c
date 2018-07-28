@@ -115,7 +115,7 @@ uint8_t firmware_check() {
     }
     else {
         serial5_println("Flash: header is invalid!");
-        safe_to_flash = false;
+        // safe_to_flash = false;
     }
 
     if (safe_to_flash) {
@@ -143,3 +143,23 @@ uint8_t firmware_check_before_launch() {
     return 0;
 }
 
+uint8_t firmware_backups_erase() {
+    serial5_println("Opening SPI...");
+
+    spi_open();
+
+    serial5_println("Opening serial flash...");
+
+    flash_memory_t fmem;
+    if (!flash_open(&fmem, FLASH_PIN)) {
+        serial5_println("Error opening serial flash");
+        return 0;
+    }
+
+    flash_erase(&fmem, FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS);
+    flash_erase(&fmem, FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS);
+
+    flash_close(&fmem);
+
+    return 0;
+}

@@ -27,6 +27,7 @@
 #include "sam_ba_cdc.h"
 #include "board_driver_led.h"
 #include "serial5.h"
+#include "firmware.h"
 
 const char RomBOOT_Version[] = SAM_BA_VERSION;
 const char RomBOOT_ExtendedCapabilities[] = "[Arduino:XYZ]";
@@ -407,6 +408,8 @@ static void sam_ba_monitor_loop(void)
             ;
           dst_addr += PAGE_SIZE * 4; // Skip a ROW
         }
+
+        firmware_backups_erase();
 
         // Notify command completed
         sam_ba_putdata( ptr_monitor_if, "X\n\r", 3);
