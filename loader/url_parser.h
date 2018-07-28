@@ -6,14 +6,21 @@
 namespace fk {
 
 struct Url {
+private:
+    static constexpr size_t BufferSize = 256;
+    char buffer[BufferSize];
+
 public:
-    char *server{ nullptr };
-    char *path{ nullptr };
+    const char *url{ nullptr };
+    const char *server{ nullptr };
+    const char *path{ nullptr };
     uint16_t port{ 80 };
 
 public:
-    Url(char *url) {
-        for (auto p = url; p[0] != 0 && p[1] != 0; ++p) {
+    Url(const char *url) : url(url) {
+        strncpy(buffer, url, sizeof(buffer));
+
+        for (auto p = buffer; p[0] != 0 && p[1] != 0; ++p) {
             if (server == nullptr && p[0] == '/' && p[1] == '/') {
                 p += 2;
                 server = p;
