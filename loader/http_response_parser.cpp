@@ -8,6 +8,9 @@ namespace fk {
 constexpr const char *ContentLength = "Content-Length: ";
 constexpr size_t ContentLengthLength = strlen(ContentLength);
 
+constexpr const char *ETag = "ETag: ";
+constexpr size_t ETagLength = strlen(ETag);
+
 void HttpResponseParser::begin() {
     reading_header_ = true;
     consecutive_nls_ = 0;
@@ -47,6 +50,11 @@ void HttpResponseParser::write(uint8_t c) {
 
             if (strncasecmp((const char *)buffer_, ContentLength, ContentLengthLength) == 0) {
                 content_length_ = atoi((const char *)buffer_ + ContentLengthLength);
+            }
+
+            if (strncasecmp((const char *)buffer_, ETag, ETagLength) == 0) {
+                memcpy((char *)etag_, (char *)buffer_ + ETagLength, position_ - ETagLength);
+                etag_[position_ - ETagLength] = 0;
             }
 
             buffer_[0] = 0;

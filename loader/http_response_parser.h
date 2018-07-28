@@ -9,12 +9,14 @@ namespace fk {
 class HttpResponseParser {
 private:
     static constexpr size_t BufferSize = 32;
+    static constexpr size_t MaximumETagSize = BufferSize;
 
     bool reading_header_{ true };
     uint8_t consecutive_nls_{ 0 };
     uint8_t previous_{ 0 };
     uint8_t spaces_seen_{ 0 };
     uint8_t position_{ 0 };
+    uint8_t etag_[MaximumETagSize];
     uint8_t buffer_[BufferSize];
     uint16_t status_code_{ 0 };
     uint32_t content_length_{ 0 };
@@ -30,6 +32,10 @@ public:
 
     uint32_t content_length() {
         return content_length_;
+    }
+
+    const uint8_t *etag() {
+        return etag_;
     }
 
 public:
