@@ -203,6 +203,7 @@ int main(void)
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
 
+  serial5_open();
   serial5_println("Waiting...");
   serial5_flush();
 

@@ -19,6 +19,7 @@ void HttpResponseParser::begin() {
     spaces_seen_ = 0;
     status_code_ = 0;
     buffer_[0] = 0;
+    etag_[0] = 0;
 }
 
 void HttpResponseParser::write(uint8_t c) {
@@ -27,7 +28,7 @@ void HttpResponseParser::write(uint8_t c) {
             if (c == ' ') {
                 spaces_seen_++;
                 if (spaces_seen_ == 2) {
-                    status_code_ = atoi((const char *)buffer_);
+                    status_code_ = atoi(buffer_);
                 }
                 buffer_[0] = 0;
                 position_ = 0;
@@ -48,12 +49,12 @@ void HttpResponseParser::write(uint8_t c) {
                 }
             }
 
-            if (strncasecmp((const char *)buffer_, ContentLength, ContentLengthLength) == 0) {
-                content_length_ = atoi((const char *)buffer_ + ContentLengthLength);
+            if (strncasecmp(buffer_, ContentLength, ContentLengthLength) == 0) {
+                content_length_ = atoi(buffer_ + ContentLengthLength);
             }
 
-            if (strncasecmp((const char *)buffer_, ETag, ETagLength) == 0) {
-                memcpy((char *)etag_, (char *)buffer_ + ETagLength, position_ - ETagLength);
+            if (strncasecmp(buffer_, ETag, ETagLength) == 0) {
+                memcpy(etag_, buffer_ + ETagLength, position_ - ETagLength);
                 etag_[position_ - ETagLength] = 0;
             }
 

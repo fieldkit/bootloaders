@@ -16,10 +16,10 @@ private:
     uint8_t previous_{ 0 };
     uint8_t spaces_seen_{ 0 };
     uint8_t position_{ 0 };
-    uint8_t etag_[MaximumETagSize];
-    uint8_t buffer_[BufferSize];
     uint16_t status_code_{ 0 };
     uint32_t content_length_{ 0 };
+    char buffer_[BufferSize];
+    char etag_[MaximumETagSize];
 
 public:
     bool reading_header() {
@@ -34,7 +34,7 @@ public:
         return content_length_;
     }
 
-    const uint8_t *etag() {
+    const char *etag() {
         return etag_;
     }
 

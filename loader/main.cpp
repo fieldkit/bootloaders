@@ -5,6 +5,7 @@
 #include <SerialFlash.h>
 
 #include "http_response_parser.h"
+#include "http_response_writer.h"
 
 #include "secrets.h"
 
@@ -14,7 +15,16 @@
 #define FLASH_FIRMWARE_BANK_2_ADDRESS        (1572864 + FLASH_FIRMWARE_BANK_SIZE)
 #define FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_1_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
 #define FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_2_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - sizeof(firmware_header_t))
-#define FIRMWARE_VERSION_INVALID              ((uint32_t)-1)
+#define FIRMWARE_VERSION_INVALID             ((uint32_t)-1)
+#define FIRMWARE_HEADER_TAG_MAXIMUM          (32)
+
+typedef struct firmware_header_t {
+    uint32_t version;
+    uint32_t position;
+    uint32_t size;
+    char etag[FIRMWARE_HEADER_TAG_MAXIMUM];
+    uint8_t reserved[64 - (4 * 3) - FIRMWARE_HEADER_TAG_MAXIMUM];
+} firmware_header_t;
 
 static constexpr uint8_t WIFI_PIN_CS = 7u;
 static constexpr uint8_t WIFI_PIN_IRQ = 16u;
@@ -90,37 +100,36 @@ static void flash_erase() {
     }
 }
 
-typedef struct firmware_header_t {
-    uint32_t version;
-    uint32_t position;
-    uint32_t size;
-    uint8_t reserved[64 - (4 * 3)];
-} firmware_header_t;
-
-static void download() {
-    fk::HttpResponseParser parser;
+static void download(firmware_header_t *existing) {
     WiFiClient wcl;
-
-    constexpr const char *server = "192.168.0.141";
-
     uint32_t starting = FLASH_FIRMWARE_BANK_1_ADDRESS;
     uint32_t address = starting;
 
     wcl.stop();
 
-    if (wcl.connect(server, 8080)) {
-        debugf("Connecting...\n");
+    debugf("Connecting...\n");
 
-        wcl.println("GET /blink.bin HTTP/1.1");
-        wcl.print("Host: "); wcl.println(server);
-        wcl.println("User-Agent: ArduinoWiFi/1.1");
-        wcl.println("Connection: close");
-        wcl.println();
-        wcl.flush();
+    const char *url = "http://192.168.0.121:8080/blink.bin";
+    const auto length = strlen(url) + 1;
+    char urlCopy[length];
+    strncpy(urlCopy, url, length);
+    fk::Url parsed(urlCopy);
 
-        delay(100);
 
-        debugf("Downloading...\n");
+    if (wcl.connect(parsed.server, parsed.port)) {
+        fk::OutgoingHttpHeaders headers{
+            nullptr,
+            "Version",
+            "Build",
+            "Device-Id",
+            existing->etag
+        };
+        fk::HttpHeadersWriter httpWriter(wcl);
+        fk::HttpResponseParser httpParser;
+
+        debugf("Connected!\n");
+
+        httpWriter.writeHeaders(parsed, "GET", headers);
 
         auto started = millis();
         auto total = 0;
@@ -134,25 +143,39 @@ static void download() {
             }
 
             while (wcl.available()) {
-                if (parser.reading_header()) {
-                    parser.write(wcl.read());
+                if (httpParser.reading_header()) {
+                    httpParser.write(wcl.read());
                 }
                 else {
                     uint8_t buffer[512];
 
                     auto bytes = wcl.read(buffer, sizeof(buffer));
                     if (bytes > 0) {
-                        SerialFlash.write(address, buffer, bytes);
+                        if (httpParser.status_code() == 200) {
+                            if (total == 0) {
+                                flash_erase();
+                            }
 
-                        total += bytes;
-                        address += bytes;
+                            SerialFlash.write(address, buffer, bytes);
+
+                            total += bytes;
+                            address += bytes;
+                        }
                     }
                 }
             }
         }
 
-        firmware_header_t header = { 1, starting, parser.content_length() };
-        SerialFlash.write(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &header, sizeof(header));
+        debugf("Status: %d\n", httpParser.status_code());
+
+        if (total > 0) {
+            firmware_header_t header;
+            header.version = 1;
+            header.position = starting;
+            header.size = total;
+            strncpy(header.etag, httpParser.etag(), sizeof(header.etag));
+            SerialFlash.write(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &header, sizeof(header));
+        }
 
         wcl.stop();
 
@@ -211,12 +234,11 @@ void setup() {
         if (WiFi.status() == WL_CONNECTED) {
             firmware_header_t bank1;
             SerialFlash.read(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &bank1, sizeof(bank1));
-            if (bank1.version != FIRMWARE_VERSION_INVALID) {
+            if (false && bank1.version != FIRMWARE_VERSION_INVALID) {
                 debugf("Bank1: version=%d size=%d\n", bank1.version, bank1.size);
             }
             else {
-                flash_erase();
-                download();
+                download(&bank1);
                 debugf("Address: %d\n", FLASH_FIRMWARE_BANK_1_ADDRESS);
             }
 

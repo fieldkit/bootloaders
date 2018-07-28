@@ -94,7 +94,7 @@ uint8_t firmware_check() {
     bool safe_to_flash = true;
 
     if (bank1.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank1: version=%d size=%d", bank1.version, bank1.size);
+        serial5_println("Bank1: version=%d size=%d (%s)", bank1.version, bank1.size, bank1.etag);
     }
     else {
         serial5_println("Bank1: header is invalid!");
@@ -102,7 +102,7 @@ uint8_t firmware_check() {
     }
 
     if (bank2.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank2: version=%d size=%d", bank2.version, bank2.size);
+        serial5_println("Bank2: version=%d size=%d (%s)", bank2.version, bank2.size, bank2.etag);
     }
     else {
         serial5_println("Bank2: header is invalid!");
@@ -111,7 +111,7 @@ uint8_t firmware_check() {
     firmware_header_t running;
     memcpy(&running, (void *)NVM_HEADER_ADDRESS, sizeof(running));
     if (running.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Flash: version=%d size=%d", running.version, running.size);
+        serial5_println("Flash: version=%d size=%d (%s)", running.version, running.size, running.etag);
     }
     else {
         serial5_println("Flash: header is invalid!");
@@ -124,7 +124,7 @@ uint8_t firmware_check() {
             firmware_flash(&fmem, &bank1);
         }
         else {
-            serial5_println("Firmware is good (version=%d)", running.version);
+            serial5_println("Firmware is good (version=%d) (%s)", running.version, running.etag);
         }
     }
 
