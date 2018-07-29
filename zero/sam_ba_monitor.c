@@ -477,7 +477,6 @@ static void sam_ba_monitor_loop(void)
       }
       else if (command == 'Z')
       {
-        serial5_println("CRC");
         // This command calculate CRC for a given area of memory.
         // It's useful to quickly check if a transfer has been done
         // successfully.
