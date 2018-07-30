@@ -124,8 +124,6 @@ uint8_t firmware_check() {
 }
 
 uint8_t firmware_check_before_launch() {
-    board_initialize();
-
     firmware_check();
 
     return 0;

@@ -136,6 +136,7 @@ uint32_t* pulSketch_Start_Address;
 
 //  LED_on();
 
+  firmware_check_before_launch();
   serial5_printf("Program: 0x%x (0x%x)\n\r", __sketch_vectors_ptr, &__sketch_vectors_ptr);
   serial5_flush();
 
@@ -171,7 +172,9 @@ int main(void)
   DEBUG_PIN_HIGH;
 
   /* Check for a firmware update. */
-  firmware_check_before_launch();
+  board_initialize();
+  platform_setup();
+  serial5_open();
 
   /* Jump in application if condition is satisfied */
   check_start_application();
@@ -203,6 +206,7 @@ int main(void)
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
 
+  platform_setup();
   serial5_open();
   serial5_println("Waiting...");
   serial5_flush();
