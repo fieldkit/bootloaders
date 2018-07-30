@@ -11,4 +11,4 @@ file(GLOB SOURCE_FILES *.c *.cpp)
 include_directories(./)
 include_directories(../include)
 
-arduino(fk-samd21-bootloader "${SOURCE_FILES}" "${LIBRARIES}")
+arduino(fk-bootloaders-samd21large "${SOURCE_FILES}" "${LIBRARIES}")
