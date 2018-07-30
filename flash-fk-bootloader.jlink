@@ -1,3 +1,3 @@
 connect
-loadfile build/fk-samd21-bootloader.bin
+loadfile build/fk-bootloaders-samd21large.bin
 q
