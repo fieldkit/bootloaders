@@ -53,6 +53,7 @@ uint8_t firmware_check() {
 
     uint32_t block_size = flash_block_size(&fmem);
 
+    /*
     serial5_println("Opening phylum...");
 
     flash_memory_phylum_t phylum;
@@ -60,6 +61,7 @@ uint8_t firmware_check() {
         serial5_println("Error opening phylum");
         return 0;
     }
+    */
 
     firmware_header_t bank1;
     firmware_header_t bank2;
