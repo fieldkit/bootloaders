@@ -174,7 +174,6 @@ int main(void)
   /* Check for a firmware update. */
   board_initialize();
   platform_setup();
-  serial5_open();
 
   /* Jump in application if condition is satisfied */
   check_start_application();
@@ -207,7 +206,7 @@ int main(void)
   SysTick_Config(1000);
 
   platform_setup();
-  serial5_open();
+
   serial5_println("Waiting...");
   serial5_flush();
 

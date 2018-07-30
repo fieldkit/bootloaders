@@ -1,7 +1,6 @@
 #include <string.h>
 
 #include "firmware.h"
-#include "board_driver_spi.h"
 #include "flash_memory.h"
 #include "nvm_memory.h"
 #include "phylum.h"
@@ -44,18 +43,6 @@ uint8_t firmware_flash(flash_memory_t *fmem, firmware_header_t *header) {
 }
 
 uint8_t firmware_check() {
-    platform_setup();
-
-    serial5_open();
-
-    serial5_println("");
-
-    serial5_println("Bootloader Ready");
-
-    serial5_println("Opening SPI...");
-
-    spi_open();
-
     serial5_println("Opening serial flash...");
 
     flash_memory_t fmem;
@@ -130,10 +117,6 @@ uint8_t firmware_check_before_launch() {
 }
 
 uint8_t firmware_backups_erase() {
-    serial5_println("Opening SPI...");
-
-    spi_open();
-
     serial5_println("Opening serial flash...");
 
     flash_memory_t fmem;
@@ -141,6 +124,8 @@ uint8_t firmware_backups_erase() {
         serial5_println("Error opening serial flash");
         return 0;
     }
+
+    serial5_println("Erasing banks...");
 
     flash_erase(&fmem, FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS);
     flash_erase(&fmem, FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS);

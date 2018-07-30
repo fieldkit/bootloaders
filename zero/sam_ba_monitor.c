@@ -409,6 +409,8 @@ static void sam_ba_monitor_loop(void)
           dst_addr += PAGE_SIZE * 4; // Skip a ROW
         }
 
+        serial5_println("Done");
+
         firmware_backups_erase();
 
         // Notify command completed
