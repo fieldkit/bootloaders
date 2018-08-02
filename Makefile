@@ -18,4 +18,6 @@ build: gitdeps loader/secrets.h
 clean:
 	rm -rf build
 
+veryclean: clean
+
 .PHONY: build
