@@ -4,3 +4,4 @@ zero/samd21_sam_ba.hex
 .gdb_history
 secrets.h
 gitdeps
+dependencies.cmake
