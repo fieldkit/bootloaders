@@ -10,6 +10,7 @@
 #define FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS (FLASH_FIRMWARE_BANK_2_ADDRESS + FLASH_FIRMWARE_BANK_SIZE - FLASH_FIRMWARE_HEADER_RESERVED)
 
 #define FIRMWARE_VERSION_INVALID             ((uint32_t)-1)
+#define FIRMWARE_HEADER_MODULE_MAXIMUM       (64)
 #define FIRMWARE_HEADER_TAG_MAXIMUM          (64)
 
 #define FIRMWARE_NVM_PROGRAM_ADDRESS         (0x4000)
@@ -19,6 +20,7 @@ typedef struct firmware_header_t {
     uint32_t version;
     uint32_t position;
     uint32_t size;
+    char module[FIRMWARE_HEADER_MODULE_MAXIMUM];
     char etag[FIRMWARE_HEADER_TAG_MAXIMUM];
 } firmware_header_t;
 
