@@ -136,7 +136,9 @@ uint32_t* pulSketch_Start_Address;
 
 //  LED_on();
 
+  #ifdef FK_BOOTLOADER_ENABLE_FLASH
   firmware_check_before_launch();
+  #endif
   serial5_printf("Program: 0x%x (0x%x)\n\r", __sketch_vectors_ptr, &__sketch_vectors_ptr);
   serial5_flush();
 
@@ -173,7 +175,9 @@ int main(void)
 
   /* Check for a firmware update. */
   board_initialize();
+  #ifdef FK_BOOTLOADER_ENABLE_FLASH
   platform_setup();
+  #endif
 
   /* Jump in application if condition is satisfied */
   check_start_application();
@@ -205,7 +209,9 @@ int main(void)
   /* Start the sys tick (1 ms) */
   SysTick_Config(1000);
 
+  #ifdef FK_BOOTLOADER_ENABLE_FLASH
   platform_setup();
+  #endif
 
   serial5_println("Waiting...");
   serial5_flush();

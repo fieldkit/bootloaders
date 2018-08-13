@@ -411,7 +411,9 @@ static void sam_ba_monitor_loop(void)
 
         serial5_println("Done");
 
+        #ifdef FK_BOOTLOADER_ENABLE_FLASH
         firmware_backups_erase();
+        #endif
 
         // Notify command completed
         sam_ba_putdata( ptr_monitor_if, "X\n\r", 3);

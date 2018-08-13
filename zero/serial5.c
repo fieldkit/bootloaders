@@ -17,6 +17,7 @@
 static uint8_t opened = 0;
 
 void serial5_open() {
+    #ifdef FK_BOOTLOADER_ENABLE_SERIAL5
     uint32_t port;
     uint32_t pin;
 
@@ -75,6 +76,7 @@ void serial5_open() {
     uart_basic_init(COMM_USART_MODULE, 63018, COMM_USART_PAD_SETTINGS);
 
     opened = true;
+    #endif
 }
 
 void serial5_close() {
@@ -89,15 +91,19 @@ void serial5_putc(uint8_t value) {
         return;
     }
 
+    #ifdef FK_BOOTLOADER_ENABLE_SERIAL5
     uart_write_byte(COMM_USART_MODULE, value);
+    #endif
 }
 
 void serial5_vprintf(const char *f, va_list args) {
+    #ifdef FK_BOOTLOADER_ENABLE_SERIAL5
     char buffer[128];
     vsnprintf(buffer, sizeof(buffer), f, args);
     for (const char *p = buffer; *p != 0; p++) {
         serial5_putc(*p);
     }
+    #endif
 }
 
 void serial5_println(const char *f, ...) {
@@ -105,12 +111,14 @@ void serial5_println(const char *f, ...) {
         return;
     }
 
+    #ifdef FK_BOOTLOADER_ENABLE_SERIAL5
     va_list args;
     va_start(args, f);
     serial5_vprintf(f, args);
     serial5_putc('\r');
     serial5_putc('\n');
     va_end(args);
+    #endif
 }
 
 void serial5_printf(const char *f, ...) {
@@ -118,10 +126,12 @@ void serial5_printf(const char *f, ...) {
         return;
     }
 
+    #ifdef FK_BOOTLOADER_ENABLE_SERIAL5
     va_list args;
     va_start(args, f);
     serial5_vprintf(f, args);
     va_end(args);
+    #endif
 }
 
 void serial5_flush() {
