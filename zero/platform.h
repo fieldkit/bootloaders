@@ -13,6 +13,8 @@
 #define FLASH_PIN            (26u)
 #define PERIPH_ENABLE_PIN    (25u)
 
+#define INACTIVITY_TIMEOUT   (1000 * 60 * 2)
+
 void platform_setup();
 
 void board_initialize(void);

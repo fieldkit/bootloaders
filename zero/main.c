@@ -129,8 +129,6 @@ uint32_t* pulSketch_Start_Address;
 #endif
 */
 
-//  LED_on();
-
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   firmware_check_before_launch();
   #endif
@@ -156,6 +154,14 @@ uint32_t* pulSketch_Start_Address;
 #	define DEBUG_PIN_HIGH 	do{}while(0)
 #	define DEBUG_PIN_LOW 	do{}while(0)
 #endif
+
+int loop() {
+    if (millis() > INACTIVITY_TIMEOUT) {
+        NVIC_SystemReset();
+    }
+
+    return 0;
+}
 
 /**
  *  \brief SAMD21 SAM-BA Main loop.
