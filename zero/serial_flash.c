@@ -259,12 +259,47 @@ uint8_t flash_open(flash_memory_t *flash, uint8_t cs) {
     return true;
 }
 
+uint8_t flash_write(flash_memory_t *flash, uint32_t addr, const void *buf, uint32_t len) {
+    const uint8_t *p = (const uint8_t *)buf;
+    uint32_t max, pagelen;
+
+    do {
+        flash_wait(flash);
+        flash_take(flash);
+        // write enable command
+        spi_transfer(0x06);
+        flash_release(flash);
+        max = 256 - (addr & 0xFF);
+        pagelen = (len <= max) ? len : max;
+        delay_microseconds(1);
+        flash_take(flash);
+        if (false/*flags & FLAG_32BIT_ADDR*/) {
+            spi_transfer(0x02);
+            spi_transfer_word(addr >> 16);
+            spi_transfer_word(addr);
+        } else {
+            spi_transfer_word(0x0200 | ((addr >> 16) & 255));
+            spi_transfer_word(addr);
+        }
+        addr += pagelen;
+        len -= pagelen;
+        do {
+            spi_transfer(*p++);
+        }
+        while (--pagelen > 0);
+        flash_release(flash);
+    }
+    while (len > 0);
+
+    return true;
+}
+
 uint8_t flash_erase(flash_memory_t *flash, uint32_t addr) {
     flash_wait(flash);
 
     spi_begin();
     flash_take(flash);
-    spi_transfer(0x06); // write enable command
+    spi_transfer(0x06);
     flash_release(flash);
     delay_microseconds(1);
     flash_take(flash);
@@ -278,9 +313,9 @@ uint8_t flash_erase(flash_memory_t *flash, uint32_t addr) {
     }
     flash_release(flash);
     spi_end();
-    return 1;
+    return true;
 }
 
 uint8_t flash_close(flash_memory_t *flash) {
-    return 1;
+    return true;
 }

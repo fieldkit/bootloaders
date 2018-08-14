@@ -71,6 +71,7 @@ Geometry &TinyFlashStorageBackend::geometry() {
 
 bool TinyFlashStorageBackend::erase(block_index_t block) {
     auto address = get_sf_address(geometry_, BlockAddress{ block, 0 });
+    flash_erase(fmem_, address);
     return true;
 }
 
@@ -82,6 +83,7 @@ bool TinyFlashStorageBackend::read(BlockAddress addr, void *d, size_t n) {
 
 bool TinyFlashStorageBackend::write(BlockAddress addr, void *d, size_t n) {
     auto address = get_sf_address(geometry_, addr);
+    flash_write(fmem_, address, d, n);
     return true;
 }
 
