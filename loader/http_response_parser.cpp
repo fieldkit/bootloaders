@@ -6,10 +6,15 @@
 namespace fk {
 
 constexpr const char *ContentLength = "Content-Length: ";
-constexpr size_t ContentLengthLength = strlen(ContentLength);
-
 constexpr const char *ETag = "ETag: ";
+
+#ifdef __unix__
+constexpr size_t ContentLengthLength = strlen(ContentLength);
 constexpr size_t ETagLength = strlen(ETag);
+#else
+const size_t ContentLengthLength = strlen(ContentLength);
+const size_t ETagLength = strlen(ETag);
+#endif
 
 void HttpResponseParser::begin() {
     reading_header_ = true;

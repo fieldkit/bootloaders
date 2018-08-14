@@ -8,7 +8,7 @@ namespace fk {
 
 class HttpResponseParser {
 private:
-    static constexpr size_t BufferSize = 32;
+    static constexpr size_t BufferSize = 64;
     static constexpr size_t MaximumETagSize = BufferSize;
 
     bool reading_header_{ true };
