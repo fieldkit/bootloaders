@@ -108,27 +108,6 @@ uint32_t* pulSketch_Start_Address;
   }
 #endif
 
-/*
-#if defined(BOOT_LOAD_PIN)
-  volatile PortGroup *boot_port = (volatile PortGroup *)(&(PORT->Group[BOOT_LOAD_PIN / 32]));
-  volatile bool boot_en;
-
-  // Enable the input mode in Boot GPIO Pin
-  boot_port->DIRCLR.reg = BOOT_PIN_MASK;
-  boot_port->PINCFG[BOOT_LOAD_PIN & 0x1F].reg = PORT_PINCFG_INEN | PORT_PINCFG_PULLEN;
-  boot_port->OUTSET.reg = BOOT_PIN_MASK;
-  // Read the BOOT_LOAD_PIN status
-  boot_en = (boot_port->IN.reg) & BOOT_PIN_MASK;
-
-  // Check the bootloader enable condition
-  if (!boot_en)
-  {
-    // Stay in bootloader
-    return;
-  }
-#endif
-*/
-
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   firmware_check_before_launch();
   #endif
