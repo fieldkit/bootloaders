@@ -1,7 +1,7 @@
 #ifndef _PHYLUM_H_
 #define _PHYLUM_H_
 
-#include "flash_memory.h"
+#include "serial_flash.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -6,7 +6,6 @@
 #include <phylum/serial_flash_fs.h>
 #include <backends/arduino_serial_flash/serial_flash_allocator.h>
 
-#include "flash_memory.h"
 #include "firmware_header.h"
 #include "serial5.h"
 #include "phylum.h"

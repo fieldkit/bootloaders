@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "firmware.h"
-#include "flash_memory.h"
+#include "serial_flash.h"
 #include "nvm_memory.h"
 #include "phylum.h"
 #include "platform.h"
@@ -59,50 +59,6 @@ uint8_t firmware_check() {
         serial5_println("Error opening phylum");
         return 0;
     }
-
-    /*
-    firmware_header_t bank1;
-    firmware_header_t bank2;
-    flash_read(&fmem, FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &bank1, sizeof(bank1));
-    flash_read(&fmem, FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS, &bank2, sizeof(bank2));
-
-    bool safe_to_flash = true;
-
-    if (bank1.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank1: version=%d size=%d (%s)", bank1.version, bank1.size, bank1.etag);
-    }
-    else {
-        serial5_println("Bank1: header is invalid!");
-        safe_to_flash = false;
-    }
-
-    if (bank2.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank2: version=%d size=%d (%s)", bank2.version, bank2.size, bank2.etag);
-    }
-    else {
-        serial5_println("Bank2: header is invalid!");
-    }
-
-    firmware_header_t running;
-    memcpy(&running, (void *)FIRMWARE_NVM_HEADER_ADDRESS, sizeof(running));
-    if (running.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Flash: version=%d size=%d (%s)", running.version, running.size, running.etag);
-    }
-    else {
-        serial5_println("Flash: header is invalid!");
-        // safe_to_flash = false;
-    }
-
-    if (safe_to_flash) {
-        if (running.version != bank1.version) {
-            serial5_println("Flashing! (version=%d)", running.version);
-            firmware_flash(&fmem, &bank1);
-        }
-        else {
-            serial5_println("Firmware is good (version=%d) (%s)", running.version, running.etag);
-        }
-    }
-    */
 
     flash_close(&fmem);
 

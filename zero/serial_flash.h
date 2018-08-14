@@ -1,5 +1,5 @@
-#ifndef _DRIVER_FLASH_MEMORY_H_
-#define _DRIVER_FLASH_MEMORY_H_
+#ifndef _DRIVER_SERIAL_FLASH_MEMORY_H_
+#define _DRIVER_SERIAL_FLASH_MEMORY_H_
 
 #include <sam.h>
 

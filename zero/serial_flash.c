@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "flash_memory.h"
+#include "serial_flash.h"
 #include "board_driver_spi.h"
 #include "serial5.h"
 #include "wiring.h"
