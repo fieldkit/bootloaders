@@ -25,7 +25,8 @@
  */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00000000+0x8000, LENGTH = 0x00040000-0x8000 /* First 32KB used by bootloader */
+  /* First 32KB used by bootloader, reserve 2048 for state */
+  FLASH (rx) : ORIGIN = 0x00000000 + 0x8000, LENGTH = 0x00040000 - 0x8000 - 0x800
   RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00008000
 }
 
@@ -215,6 +216,8 @@ SECTIONS
 
 	/* Set stack top to end of RAM, and stack limit move down by
 	 * size of stack_dummy section */
+  __ProgramBegin__ = ORIGIN(FLASH);
+  __FirmwareState__ = ORIGIN(FLASH) + LENGTH(FLASH);
 	__StackTop = ORIGIN(RAM) + LENGTH(RAM);
 	__StackLimit = __StackTop - SIZEOF(.stack_dummy);
 	PROVIDE(__stack = __StackTop);

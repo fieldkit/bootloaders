@@ -9,8 +9,11 @@
 #define FIRMWARE_HEADER_MODULE_MAXIMUM       (64)
 #define FIRMWARE_HEADER_TAG_MAXIMUM          (64)
 
-#define FIRMWARE_NVM_PROGRAM_ADDRESS         (0x8000)
-#define FIRMWARE_NVM_HEADER_ADDRESS          ((uint8_t *)262144 - 2048)
+extern uint32_t __ProgramBegin__;
+extern uint32_t __FirmwareState__;
+
+#define FIRMWARE_NVM_PROGRAM_ADDRESS         ((uint32_t)(&__ProgramBegin__))
+#define FIRMWARE_NVM_HEADER_ADDRESS          ((uint32_t)(&__FirmwareState__))
 
 typedef struct firmware_header_t {
     uint32_t version;

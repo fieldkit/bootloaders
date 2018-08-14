@@ -82,36 +82,37 @@ uint32_t* pulSketch_Start_Address;
     return;
   }
 
-#if defined(BOOT_DOUBLE_TAP_ADDRESS)
+#if defined(BOOT_STATE_ADDRESS)
   #define DOUBLE_TAP_MAGIC 0x07738135
   if (PM->RCAUSE.bit.POR)
   {
     /* On power-on initialize double-tap */
-    BOOT_DOUBLE_TAP_DATA = 0;
+    BOOT_STATE_DATA = 0;
   }
   else
   {
-    if (BOOT_DOUBLE_TAP_DATA == DOUBLE_TAP_MAGIC)
+    if (BOOT_STATE_DATA == DOUBLE_TAP_MAGIC)
     {
       /* Second tap, stay in bootloader */
-      BOOT_DOUBLE_TAP_DATA = 0;
+      BOOT_STATE_DATA = 0;
       return;
     }
 
     /* First tap */
-    BOOT_DOUBLE_TAP_DATA = DOUBLE_TAP_MAGIC;
+    BOOT_STATE_DATA = DOUBLE_TAP_MAGIC;
 
     busy_delay(500);
 
     /* Timeout happened, continue boot... */
-    BOOT_DOUBLE_TAP_DATA = 0;
+    BOOT_STATE_DATA = 0;
   }
 #endif
 
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   firmware_check_before_launch();
   #endif
-  serial5_printf("Program: 0x%x (0x%x)\n\r", __sketch_vectors_ptr, &__sketch_vectors_ptr);
+  serial5_println("Program: 0x%x (0x%x)", __sketch_vectors_ptr, &__sketch_vectors_ptr);
+  serial5_println("StackTop: 0x%x BootState: 0x%x", &__StackTop, BOOT_STATE_ADDRESS);
   serial5_flush();
 
   // return;

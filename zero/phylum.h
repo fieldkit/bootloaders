@@ -9,6 +9,7 @@
 
 #include "serial_flash.h"
 #include "core_state.h"
+#include "firmware_header.h"
 
 class TinyFlashStorageBackend : public phylum::StorageBackend {
 private:
@@ -41,7 +42,12 @@ private:
 public:
     bool open();
     bool flash(FirmwareBank bank);
-    bool erase(FirmwareBank bank);
+    bool clear(FirmwareBank bank, bool erase_file);
+
+public:
+    bool set_existing(firmware_header_t *header);
+    bool get_existing(firmware_header_t *header);
+
 };
 
 #endif // _PHYLUM_H_

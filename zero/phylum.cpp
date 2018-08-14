@@ -85,6 +85,18 @@ bool FirmwareManager::open() {
 
     serial5_println("Found SuperBlock! (%lu:%lu)", addr.block, addr.sector);
 
+    firmware_header_t header;
+    if (!get_existing(&header)) {
+        return false;
+    }
+
+    if (header.version == FIRMWARE_VERSION_INVALID) {
+        serial5_println("No existing firmware state.");
+    }
+    else {
+        serial5_println("Existing: ");
+    }
+
     return true;
 }
 
@@ -150,6 +162,8 @@ bool FirmwareManager::flash(FirmwareBank bank) {
 
     serial5_println("Flash: Writing 0x%x (%d)", writing, bytes);
 
+    set_existing(&header);
+
     return true;
 }
 
@@ -181,6 +195,18 @@ bool FirmwareManager::clear(FirmwareBank bank, bool erase_file) {
     }
 
     serial5_println("Bank %d: Done", bank);
+
+    return true;
+}
+
+bool FirmwareManager::set_existing(firmware_header_t *header) {
+    nvm_write((uint32_t *)FIRMWARE_NVM_HEADER_ADDRESS, (uint32_t *)header, sizeof(firmware_header_t) / sizeof(uint32_t));
+
+    return true;
+}
+
+bool FirmwareManager::get_existing(firmware_header_t *header) {
+    memcpy(header, (uint32_t *)FIRMWARE_NVM_HEADER_ADDRESS, sizeof(firmware_header_t));
 
     return true;
 }
