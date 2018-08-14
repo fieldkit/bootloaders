@@ -12,11 +12,13 @@ void platform_setup() {
     pinMode(WIFI_PIN_CS, OUTPUT);
     pinMode(FLASH_PIN, OUTPUT);
 
-    pinMode(PERIPH_ENABLE_PIN, OUTPUT);
-    digitalWrite(PERIPH_ENABLE_PIN, LOW);
-    busy_delay(500);
-    digitalWrite(PERIPH_ENABLE_PIN, HIGH);
-    busy_delay(500);
+    if (false) {
+        pinMode(PERIPH_ENABLE_PIN, OUTPUT);
+        digitalWrite(PERIPH_ENABLE_PIN, LOW);
+        busy_delay(500);
+        digitalWrite(PERIPH_ENABLE_PIN, HIGH);
+        busy_delay(500);
+    }
 
     digitalWrite(RFM95_PIN_CS, HIGH);
     digitalWrite(SD_PIN_CS, HIGH);
