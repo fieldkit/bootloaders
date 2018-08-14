@@ -105,6 +105,7 @@ bool FirmwareManager::flash(FirmwareBank bank) {
 
     auto addr = state.firmwares.banks[(int32_t)bank];
     if (!addr.valid()) {
+        serial5_println("Bank %d: address is invalid.", bank);
         return true;
     }
 

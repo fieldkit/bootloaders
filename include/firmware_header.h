@@ -1,6 +1,8 @@
 #ifndef _FIRMWARE_HEADER_H_
 #define _FIRMWARE_HEADER_H_
 
+#include <sam.h>
+
 #ifdef __cplusplus
 #include <cinttypes>
 #endif

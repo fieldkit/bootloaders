@@ -141,7 +141,7 @@ public:
 };
 
 static void download(FirmwareStorage &firmware) {
-    const char *url = "http://api.fkdev.org/devices/0004a30b001d00ff/fk-core/firmware";
+    const char *url = "http://192.168.0.141:8080/loader.bin";
 
     fk::Url parsed(url);
 

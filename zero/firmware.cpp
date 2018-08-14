@@ -10,7 +10,7 @@ uint8_t firmware_check() {
         return 0;
     }
 
-    firmware.flash(FirmwareBank::Core);
+    firmware.flash(FirmwareBank::CoreNew);
 
     return 0;
 }
