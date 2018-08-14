@@ -107,7 +107,7 @@ bool FirmwareManager::flash(FirmwareBank bank) {
     }
 
     if (header.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank %d: version=%d size=%d (%s)", bank, header.version, header.size, header.etag);
+        serial5_println("Bank %d: version=%d time=%lu size=%d (%s)", bank, header.version, header.time, header.size, header.etag);
     }
     else {
         serial5_println("Bank %d: header is invalid!", bank);
@@ -153,10 +153,10 @@ bool FirmwareManager::flash(FirmwareBank bank) {
     return true;
 }
 
-bool FirmwareManager::erase(FirmwareBank bank) {
+bool FirmwareManager::clear(FirmwareBank bank, bool erase_file) {
     auto &state = manager.state();
 
-    serial5_println("Bank %d: Erasing", bank);
+    serial5_println("Bank %d: Clearing", bank);
 
     auto addr = state.firmwares.banks[(int32_t)bank];
     if (!addr.valid()) {
@@ -170,12 +170,14 @@ bool FirmwareManager::erase(FirmwareBank bank) {
         return false;
     }
 
-    AllocatedBlockedFile file{ &backend, OpenMode::Write, &allocator, addr };
+    if (erase_file) {
+        AllocatedBlockedFile file{ &backend, OpenMode::Write, &allocator, addr };
 
-    file.seek(0);
+        file.seek(0);
 
-    if (!file.erase_all_blocks()) {
-        return false;
+        if (!file.erase_all_blocks()) {
+            return false;
+        }
     }
 
     serial5_println("Bank %d: Done", bank);

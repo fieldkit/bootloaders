@@ -144,7 +144,7 @@ static void download(FirmwareStorage &firmware) {
                             if (total == 0) {
                                 firmware_header_t header;
                                 header.version = 1;
-                                header.position = 0;
+                                header.time = 0;
                                 header.size = httpParser.content_length();
                                 strncpy(header.etag, httpParser.etag(), sizeof(header.etag) - 1);
 
@@ -163,7 +163,7 @@ static void download(FirmwareStorage &firmware) {
         }
 
         if (total > 0) {
-            firmware.update(FirmwareBank::CoreA, httpParser.etag());
+            firmware.update(FirmwareBank::CoreNew, httpParser.etag());
         }
 
         wcl.stop();

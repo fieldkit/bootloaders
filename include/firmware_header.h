@@ -14,7 +14,7 @@
 
 typedef struct firmware_header_t {
     uint32_t version;
-    uint32_t position;
+    uint32_t time;
     uint32_t size;
     char module[FIRMWARE_HEADER_MODULE_MAXIMUM];
     char etag[FIRMWARE_HEADER_TAG_MAXIMUM];

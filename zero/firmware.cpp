@@ -10,7 +10,7 @@ uint8_t firmware_check() {
         return 0;
     }
 
-    firmware.flash(FirmwareBank::CoreA);
+    firmware.flash(FirmwareBank::Core);
 
     return 0;
 }
@@ -28,7 +28,7 @@ uint8_t firmware_backups_erase() {
         return 0;
     }
 
-    firmware.erase(FirmwareBank::CoreA);
+    firmware.clear(FirmwareBank::Core, false);
 
     return 0;
 }

@@ -5,10 +5,12 @@
 #include <phylum/wandering_block_manager.h>
 
 enum class FirmwareBank {
-    CoreA,
-    CoreB,
-    ModuleA,
-    ModuleB,
+    Core,
+    CoreNew,
+    CoreGood,
+    Module,
+    ModuleNew,
+    ModuleGood,
     NumberOfBanks
 };
 
