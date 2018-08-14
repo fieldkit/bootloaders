@@ -113,6 +113,8 @@ bool FirmwareManager::flash(FirmwareBank bank) {
         serial5_println("Bank %d: header is invalid!", bank);
     }
 
+    return true;
+
     uint32_t PageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
     uint32_t page_size = PageSizes[NVMCTRL->PARAM.bit.PSZ];
     uint32_t pages = NVMCTRL->PARAM.bit.NVMP;
@@ -127,16 +129,26 @@ bool FirmwareManager::flash(FirmwareBank bank) {
 
     while (bytes < header.size) {
         uint8_t buffer[1024];
+        size_t size{ 0 };
 
-        serial5_println("Flash: Writing 0x%x -> 0x%x (%d)", buffer, writing, bytes);
+        serial5_println("Flash: Writing 0x%x (%d)", writing, bytes);
 
-        bytes_read = file.read(buffer, sizeof(buffer));
+        do {
+            auto bytes_read = file.read(buffer + size, sizeof(buffer) - size);
+            if (bytes_read == 0) {
+                break;
+            }
+            size += bytes_read;
+        }
+        while (size < sizeof(buffer));
 
-        nvm_write((uint32_t *)writing, (uint32_t *)buffer, sizeof(buffer) / sizeof(uint32_t));
+        nvm_write((uint32_t *)writing, (uint32_t *)buffer, size / sizeof(uint32_t));
 
-        writing += bytes_read;
-        bytes += bytes_read;
+        writing += size;
+        bytes += size;
     }
+
+    serial5_println("Flash: Writing 0x%x (%d)", writing, bytes);
 
     return true;
 }

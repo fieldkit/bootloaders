@@ -12,6 +12,7 @@
 #include <WiFi101.h>
 
 #include "firmware_header.h"
+#include "core_state.h"
 
 #include "http_response_parser.h"
 #include "http_response_writer.h"
@@ -26,9 +27,222 @@ static constexpr uint8_t FLASH_PIN_CS = 26u;
 static constexpr uint8_t SD_PIN_CS = 12u;
 static constexpr uint8_t RFM95_PIN_CS = 5u;
 
+static void leds(uint8_t value);
+static void panic(const char *message);
 static void debugf(const char *f, ...);
+static void debugln(const char *f, ...);
+static const char *wifi_status_get(uint8_t status);
+
+class FirmwareStorage {
+private:
+    phylum::NoopStorageBackendCallbacks callbacks_;
+    phylum::ArduinoSerialFlashBackend backend_{ callbacks_ };
+    phylum::SerialFlashAllocator allocator_{ backend_ };
+    phylum::SerialFlashStateManager<CoreState> manager_{ backend_, allocator_ };
+    phylum::AllocatedBlockedFile opened_;
+
+public:
+    bool initialize() {
+        if (!backend_.initialize(FLASH_PIN_CS, 512)) {
+            panic("Not availabl\ne");
+            return false;
+        }
+
+        if (!manager_.locate()) {
+            panic("Not found\n");
+            return false;
+        }
+
+        return true;
+    }
+
+    phylum::BlockedFile &write() {
+        opened_ = phylum::AllocatedBlockedFile(&backend_, phylum::OpenMode::Write, &allocator_, { });
+
+        if (!opened_.format()) {
+            panic("Unable to format file.");
+        }
+
+        return opened_;
+    }
+
+    bool update(FirmwareBank bank, const char *etag) {
+        opened_.close();
+
+        auto previousAddr = manager_.state().firmwares.banks[(int32_t)bank];
+
+        manager_.state().firmwares.banks[(int32_t)bank] = opened_.beginning();
+
+        if (!manager_.save()) {
+            panic("Error saving block");
+        }
+
+        if (previousAddr.valid()) {
+            phylum::AllocatedBlockedFile previousFile(&backend_, phylum::OpenMode::Write, &allocator_, previousAddr);
+            if (previousFile.exists()) {
+                previousFile.erase_all_blocks();
+            }
+        }
+
+        auto loc = manager_.location();
+
+        debugln("Bank %d: Saved firmware (%lu:%lu)", bank, loc.block, loc.sector);
+
+        return true;
+    }
+};
+
+static void download(FirmwareStorage &firmware) {
+    const char *url = "http://api.fkdev.org/devices/0004a30b001d00ff/fk-core/firmware";
+
+    fk::Url parsed(url);
+
+    debugln("GET %s", url);
+
+    debugln("Connecting...");
+
+    auto &file = firmware.write();
+
+    WiFiClient wcl;
+    wcl.stop();
+    if (wcl.connect(parsed.server, parsed.port)) {
+        fk::OutgoingHttpHeaders headers{
+            nullptr,
+            "Version",
+            "Build",
+            "Device-Id",
+            nullptr
+        };
+        fk::HttpHeadersWriter httpWriter(wcl);
+        fk::HttpResponseParser httpParser;
+
+        debugln("Connected!");
+
+        httpWriter.writeHeaders(parsed, "GET", headers);
+
+        auto started = millis();
+        auto total = 0;
+
+        while (wcl.connected() || wcl.available()) {
+            delay(10);
+
+            if (millis() - started > 10000) {
+                debugln("Fail");
+                break;
+            }
+
+            while (wcl.available()) {
+                if (httpParser.reading_header()) {
+                    httpParser.write(wcl.read());
+                }
+                else {
+                    uint8_t buffer[512];
+
+                    auto bytes = wcl.read(buffer, sizeof(buffer));
+                    if (bytes > 0) {
+                        if (httpParser.status_code() == 200) {
+                            if (total == 0) {
+                                firmware_header_t header;
+                                header.version = 1;
+                                header.position = 0;
+                                header.size = httpParser.content_length();
+                                strncpy(header.etag, httpParser.etag(), sizeof(header.etag) - 1);
+
+                                auto headerBytes = file.write((uint8_t *)&header, sizeof(firmware_header_t));
+                                if (headerBytes != sizeof(firmware_header_t)) {
+                                    panic("Writing header failed.");
+                                }
+                            }
+
+                            total += bytes;
+                            file.write(buffer, bytes);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (total > 0) {
+            firmware.update(FirmwareBank::CoreA, httpParser.etag());
+        }
+
+        wcl.stop();
+
+        debugln("Done! (%d) (%d bytes)", httpParser.status_code(), total);
+    }
+    else {
+        debugln("Connection failed");
+    }
+}
+
+void setup() {
+    Serial5.begin(115200);
+
+    pinMode(13, OUTPUT);
+    pinMode(A3, OUTPUT);
+    pinMode(A4, OUTPUT);
+    pinMode(A5, OUTPUT);
+
+    pinMode(FLASH_PIN_CS, OUTPUT);
+    pinMode(SD_PIN_CS, OUTPUT);
+    pinMode(WIFI_PIN_CS, OUTPUT);
+    pinMode(RFM95_PIN_CS, OUTPUT);
+
+    digitalWrite(FLASH_PIN_CS, HIGH);
+    digitalWrite(SD_PIN_CS, HIGH);
+    digitalWrite(WIFI_PIN_CS, HIGH);
+    digitalWrite(RFM95_PIN_CS, HIGH);
+
+    FirmwareStorage firmware;
+    firmware.initialize();
+
+    WiFi.setPins(WIFI_PIN_CS, WIFI_PIN_IRQ, WIFI_PIN_RST, WIFI_PIN_EN);
+
+    if (WiFi.status() == WL_NO_SHIELD) {
+        panic("No wifi");
+    }
+
+    auto fv = WiFi.firmwareVersion();
+    debugln("Version: %s, connecting...", fv);
+
+    WiFi.begin(WifiSsid, WifiPassword);
+
+    debugln("Ready!");
+
+    auto statusAt = millis();
+    auto done = false;
+
+    while (true) {
+        if (millis() - statusAt > 1000) {
+            debugln("%s", wifi_status_get(WiFi.status()));
+            statusAt = millis();
+        }
+
+        if (WiFi.status() == WL_CONNECTED) {
+            download(firmware);
+
+            while (true) {
+                delay(500);
+            }
+        }
+    }
+}
+
+void loop() {
+}
 
 constexpr size_t DEBUG_LINE_MAX = 256;
+
+static void debugln(const char *f, ...) {
+    char buffer[DEBUG_LINE_MAX];
+    va_list args;
+
+    va_start(args, f);
+    vsnprintf(buffer, DEBUG_LINE_MAX, f, args);
+    va_end(args);
+
+    Serial5.println(buffer);
+}
 
 static void debugf(const char *f, ...) {
     char buffer[DEBUG_LINE_MAX];
@@ -60,7 +274,7 @@ static void panic(const char *message) {
     }
 }
 
-static const char *getWifiStatus(uint8_t status) {
+static const char *wifi_status_get(uint8_t status) {
     switch (status) {
     case WL_NO_SHIELD: return "WL_NO_SHIELD";
     case WL_IDLE_STATUS: return "WL_IDLE_STATUS";
@@ -77,147 +291,4 @@ static const char *getWifiStatus(uint8_t status) {
     case WL_PROVISIONING_FAILED: return "WL_PROVISIONING_FAILED";
     default: return "Unknown";
     }
-}
-
-static void download(firmware_header_t *existing) {
-    WiFiClient wcl;
-
-    wcl.stop();
-
-    const char *url = "http://192.168.0.121:8080/loader.bin";
-    fk::Url parsed(url);
-
-    debugf("GET %s\n", url);
-
-    debugf("Connecting...\n");
-
-    if (wcl.connect(parsed.server, parsed.port)) {
-        fk::OutgoingHttpHeaders headers{
-            nullptr,
-            "Version",
-            "Build",
-            "Device-Id",
-            existing->etag
-        };
-        fk::HttpHeadersWriter httpWriter(wcl);
-        fk::HttpResponseParser httpParser;
-
-        debugf("Connected!\n");
-
-        httpWriter.writeHeaders(parsed, "GET", headers);
-
-        auto started = millis();
-        auto total = 0;
-
-        while (wcl.connected() || wcl.available()) {
-            delay(10);
-
-            if (millis() - started > 10000) {
-                debugf("Fail\n");
-                break;
-            }
-
-            while (wcl.available()) {
-                if (httpParser.reading_header()) {
-                    httpParser.write(wcl.read());
-                }
-                else {
-                    uint8_t buffer[512];
-
-                    auto bytes = wcl.read(buffer, sizeof(buffer));
-                    if (bytes > 0) {
-                        if (httpParser.status_code() == 200) {
-                            total += bytes;
-                        }
-                    }
-                }
-            }
-        }
-
-        debugf("Status: %d\n", httpParser.status_code());
-
-        if (total > 0) {
-        }
-
-        wcl.stop();
-
-        debugf("Done! (%d bytes)\n", total);
-    }
-    else {
-        debugf("Connection failed\n");
-    }
-}
-
-class FirmwareLoader {
-private:
-
-public:
-};
-
-class CoreState : public phylum::MinimumSuperBlock {
-};
-
-void setup() {
-    Serial5.begin(115200);
-
-    pinMode(13, OUTPUT);
-    pinMode(A3, OUTPUT);
-    pinMode(A4, OUTPUT);
-    pinMode(A5, OUTPUT);
-
-    pinMode(FLASH_PIN_CS, OUTPUT);
-    pinMode(SD_PIN_CS, OUTPUT);
-    pinMode(WIFI_PIN_CS, OUTPUT);
-    pinMode(RFM95_PIN_CS, OUTPUT);
-
-    digitalWrite(FLASH_PIN_CS, HIGH);
-    digitalWrite(SD_PIN_CS, HIGH);
-    digitalWrite(WIFI_PIN_CS, HIGH);
-    digitalWrite(RFM95_PIN_CS, HIGH);
-
-    phylum::NoopStorageBackendCallbacks callbacks;
-    phylum::ArduinoSerialFlashBackend backend{ callbacks };
-    phylum::SerialFlashAllocator allocator{ backend };
-    phylum::SerialFlashStateManager<CoreState> manager{ backend, allocator };
-
-    if (!backend.initialize(FLASH_PIN_CS, 512)) {
-        panic("Not availabl\ne");
-    }
-
-    if (!manager.locate()) {
-        panic("Not found\n");
-    }
-
-    WiFi.setPins(WIFI_PIN_CS, WIFI_PIN_IRQ, WIFI_PIN_RST, WIFI_PIN_EN);
-
-    if (WiFi.status() == WL_NO_SHIELD) {
-        panic("No wifi");
-    }
-
-    auto fv = WiFi.firmwareVersion();
-    debugf("Version: %s\n", fv);
-    debugf("Connecting...\n");
-
-    WiFi.begin(WifiSsid, WifiPassword);
-
-    debugf("Ready!\n");
-
-    auto statusAt = millis();
-    auto done = false;
-
-    while (true) {
-        if (millis() - statusAt > 1000) {
-            debugf("%s\n", getWifiStatus(WiFi.status()));
-            statusAt = millis();
-        }
-
-        if (WiFi.status() == WL_CONNECTED) {
-            while (true) {
-                delay(500);
-            }
-        }
-    }
-}
-
-void loop() {
 }

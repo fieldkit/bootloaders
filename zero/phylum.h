@@ -8,6 +8,7 @@
 #include <backends/arduino_serial_flash/serial_flash_allocator.h>
 
 #include "serial_flash.h"
+#include "core_state.h"
 
 class TinyFlashStorageBackend : public phylum::StorageBackend {
 private:
@@ -28,24 +29,6 @@ public:
     bool erase(phylum::block_index_t block) override;
     bool read(phylum::BlockAddress addr, void *d, size_t n) override;
     bool write(phylum::BlockAddress addr, void *d, size_t n) override;
-};
-
-enum class FirmwareBank {
-    CoreA,
-    CoreB,
-    ModuleA,
-    ModuleB,
-    NumberOfBanks
-};
-
-struct FirmwareAddresses {
-    phylum::BlockAddress banks[(size_t)FirmwareBank::NumberOfBanks];
-};
-
-struct CoreState : public phylum::MinimumSuperBlock {
-    uint32_t time;
-    uint32_t seed;
-    FirmwareAddresses firmwares;
 };
 
 class FirmwareManager {
