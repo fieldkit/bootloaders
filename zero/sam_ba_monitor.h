@@ -57,6 +57,9 @@ void sam_ba_monitor_sys_tick(void);
  */
 void sam_ba_monitor_run(void);
 
+void sam_ba_monitor_prepare(void);
+void sam_ba_monitor_loop(void);
+
 /**
  * \brief
  *

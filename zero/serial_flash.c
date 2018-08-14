@@ -245,10 +245,18 @@ uint8_t flash_open(flash_memory_t *flash, uint8_t cs) {
     flash->cs = cs;
 
     uint32_t size = flash_calculate_capacity(flash);
+    if (size == 0 || size == ((uint32_t)-1)) {
+        return false;
+    }
 
-    serial5_println("Size: %lu", size);
+    uint32_t block_size = flash_block_size(flash);
 
-    return size != 0 && size != ((uint32_t)-1);
+    flash->capacity = size;
+    flash->block_size = block_size;
+
+    serial5_println("Size: %lu (%lu)", size, block_size);
+
+    return true;
 }
 
 uint8_t flash_erase(flash_memory_t *flash, uint32_t addr) {

@@ -264,7 +264,7 @@ static void put_uint32(uint32_t n)
   sam_ba_putdata( ptr_monitor_if, buff, 8);
 }
 
-static void sam_ba_monitor_loop(void)
+void sam_ba_monitor_loop(void)
 {
   length = sam_ba_getdata(ptr_monitor_if, data, SIZEBUFMAX);
   ptr = data;
@@ -546,11 +546,7 @@ void sam_ba_monitor_sys_tick(void)
 		LEDRX_off();
 }
 
-/**
- * \brief This function starts the SAM-BA monitor.
- */
-void sam_ba_monitor_run(void)
-{
+void sam_ba_monitor_prepare(void) {
   uint32_t pageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
   PAGE_SIZE = pageSizes[NVMCTRL->PARAM.bit.PSZ];
   PAGES = NVMCTRL->PARAM.bit.NVMP;
@@ -558,6 +554,15 @@ void sam_ba_monitor_run(void)
 
   ptr_data = NULL;
   command = 'z';
+}
+
+/**
+ * \brief This function starts the SAM-BA monitor.
+ */
+void sam_ba_monitor_run(void)
+{
+  sam_ba_monitor_prepare();
+
   while (1)
   {
     sam_ba_monitor_loop();

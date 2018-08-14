@@ -101,12 +101,7 @@ uint32_t* pulSketch_Start_Address;
     /* First tap */
     BOOT_DOUBLE_TAP_DATA = DOUBLE_TAP_MAGIC;
 
-    /* Wait 0.5sec to see if the user tap reset again.
-     * The loop value is based on SAMD21 default 1MHz clock @ reset.
-     */
-    for (uint32_t i=0; i<125000 * 50; i++) /* 500ms */
-      /* force compiler to not optimize this... */
-      __asm__ __volatile__("");
+    busy_delay(500);
 
     /* Timeout happened, continue boot... */
     BOOT_DOUBLE_TAP_DATA = 0;
@@ -207,7 +202,7 @@ int main(void)
   LEDTX_off();
 
   /* Start the sys tick (1 ms) */
-  SysTick_Config(1000);
+  SysTick_Config(VARIANT_MCK / 1000);
 
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   platform_setup();
@@ -219,6 +214,7 @@ int main(void)
   /* Wait for a complete enum on usb or a '#' char on serial line */
   while (1)
   {
+    loop();
 #if SAM_BA_INTERFACE == SAM_BA_USBCDC_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
     if (pCdc->IsConfigured(pCdc) != 0)
     {
@@ -229,10 +225,12 @@ int main(void)
     if (main_b_cdc_enable)
     {
       sam_ba_monitor_init(SAM_BA_INTERFACE_USBCDC);
+      sam_ba_monitor_prepare();
       /* SAM-BA on USB loop */
       while( 1 )
       {
-        sam_ba_monitor_run();
+        sam_ba_monitor_loop();
+        loop();
       }
     }
 #endif
@@ -242,10 +240,12 @@ int main(void)
     if (!main_b_cdc_enable && serial_sharp_received())
     {
       sam_ba_monitor_init(SAM_BA_INTERFACE_USART);
+      sam_ba_monitor_prepare();
       /* SAM-BA on Serial loop */
       while(1)
       {
-        sam_ba_monitor_run();
+        sam_ba_monitor_loop();
+        loop();
       }
     }
 #endif
@@ -254,6 +254,8 @@ int main(void)
 
 void SysTick_Handler(void)
 {
+  platform_default_sys_tick();
+
   LED_pulse();
 
   sam_ba_monitor_sys_tick();

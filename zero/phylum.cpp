@@ -109,12 +109,12 @@ uint8_t phylum_open(flash_memory_t *fmem) {
     SerialFlashStateManager<CoreState> manager{ backend, allocator };
 
     if (!backend.initialize(512)) {
-        serial5_printf("Not available");
+        serial5_println("Not available");
         return PHYLUM_FAILURE;
     }
 
     if (!manager.locate()) {
-        serial5_printf("Not found");
+        serial5_println("Not found");
         return PHYLUM_FAILURE;
     }
 
@@ -136,10 +136,10 @@ uint8_t phylum_open(flash_memory_t *fmem) {
     auto bytes = file.read((uint8_t *)&header, sizeof(firmware_header_t));
 
     if (header.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank2: version=%d size=%d (%s)", header.version, header.size, header.etag);
+        serial5_println("Bank0: version=%d size=%d (%s)", header.version, header.size, header.etag);
     }
     else {
-        serial5_println("Bank2: header is invalid!");
+        serial5_println("Bank0: header is invalid!");
     }
 
     return PHYLUM_SUCCESS;
