@@ -98,7 +98,8 @@ uint32_t flash_block_size(flash_memory_t *flash) {
         return 262144;
     }
     */
-    return 65536;
+    flash->block_size = 65536;
+    return flash->block_size;
 }
 
 void flash_wait(flash_memory_t *flash) {

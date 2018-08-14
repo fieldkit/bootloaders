@@ -142,7 +142,7 @@ uint32_t* pulSketch_Start_Address;
   serial5_printf("Program: 0x%x (0x%x)\n\r", __sketch_vectors_ptr, &__sketch_vectors_ptr);
   serial5_flush();
 
-  // return;
+  return;
 
   /* Rebase the Stack Pointer */
   __set_MSP( (uint32_t)(__sketch_vectors_ptr) );

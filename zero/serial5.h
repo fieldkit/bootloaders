@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include <sam.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void serial5_open();
 
 void serial5_close();
@@ -16,5 +20,9 @@ void serial5_printf(const char *ptr, ...);
 void serial5_println(const char *ptr, ...);
 
 void serial5_flush();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

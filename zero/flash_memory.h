@@ -3,6 +3,10 @@
 
 #include <sam.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct flash_memory_ {
     uint8_t cs;
     uint32_t capacity;
@@ -18,5 +22,9 @@ uint8_t flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len
 uint8_t flash_erase(flash_memory_t *flash, uint32_t addr);
 
 uint8_t flash_close(flash_memory_t *flash);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _DRIVER_FLASH_MEMORY_H_

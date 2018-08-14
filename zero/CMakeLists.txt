@@ -5,6 +5,7 @@ include(ArduinoMinimal)
 
 set(ARDUINO_INCLUDE_CORE OFF)
 
+set(LIBRARIES)
 file(GLOB SOURCE_FILES *.c *.cpp)
 
 include_directories(./)
@@ -21,3 +22,4 @@ arduino(fk-bootloaders-samd21large "${SOURCE_FILES}" "${LIBRARIES}")
 target_compile_options(fk-bootloaders-samd21large PUBLIC -DFK_BOOTLOADER_LARGE)
 target_compile_options(fk-bootloaders-samd21large PUBLIC -DFK_BOOTLOADER_ENABLE_FLASH)
 target_compile_options(fk-bootloaders-samd21large PUBLIC -DFK_BOOTLOADER_ENABLE_SERIAL5)
+target_compile_options(arduino_zero_phylum PUBLIC -DPHYLUM_DISABLE_LOGGING)

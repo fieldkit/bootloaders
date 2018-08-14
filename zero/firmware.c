@@ -53,16 +53,14 @@ uint8_t firmware_check() {
 
     uint32_t block_size = flash_block_size(&fmem);
 
-    /*
     serial5_println("Opening phylum...");
 
-    flash_memory_phylum_t phylum;
-    if (!phylum_open(&phylum, &fmem)) {
+    if (!phylum_open(&fmem)) {
         serial5_println("Error opening phylum");
         return 0;
     }
-    */
 
+    /*
     firmware_header_t bank1;
     firmware_header_t bank2;
     flash_read(&fmem, FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &bank1, sizeof(bank1));
@@ -104,6 +102,7 @@ uint8_t firmware_check() {
             serial5_println("Firmware is good (version=%d) (%s)", running.version, running.etag);
         }
     }
+    */
 
     flash_close(&fmem);
 
@@ -128,9 +127,6 @@ uint8_t firmware_backups_erase() {
     }
 
     serial5_println("Erasing banks...");
-
-    flash_erase(&fmem, FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS);
-    flash_erase(&fmem, FLASH_FIRMWARE_BANK_2_HEADER_ADDRESS);
 
     flash_close(&fmem);
 
