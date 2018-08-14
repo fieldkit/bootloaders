@@ -29,6 +29,7 @@
 #include "serial5.h"
 #include "platform.h"
 #include "firmware.h"
+#include "firmware_header.h"
 
 extern uint32_t __sketch_vectors_ptr;
 
@@ -46,9 +47,6 @@ static volatile bool main_b_cdc_enable = false;
  */
 static void check_start_application(void)
 {
-//  LED_init();
-//  LED_off();
-
 #if (!defined DEBUG) || ((defined DEBUG) && (DEBUG == 0))
 uint32_t* pulSketch_Start_Address;
 #endif
@@ -82,8 +80,8 @@ uint32_t* pulSketch_Start_Address;
     return;
   }
 
-#if defined(BOOT_STATE_ADDRESS)
-  #define DOUBLE_TAP_MAGIC 0x07738135
+  uint8_t self_flash_allowed = false;
+
   if (PM->RCAUSE.bit.POR)
   {
     /* On power-on initialize double-tap */
@@ -91,28 +89,33 @@ uint32_t* pulSketch_Start_Address;
   }
   else
   {
-    if (BOOT_STATE_DATA == DOUBLE_TAP_MAGIC)
+    if (BOOT_STATE_DATA == BOOT_STATE_VALUE_DOUBLE_TAP)
     {
       /* Second tap, stay in bootloader */
       BOOT_STATE_DATA = 0;
       return;
     }
+    if (BOOT_STATE_DATA == BOOT_STATE_VALUE_FLASH)
+    {
+        serial5_println("BootSate == 0x%x, self flash allowed!", BOOT_STATE_VALUE_FLASH);
+        self_flash_allowed = true;
+    }
 
     /* First tap */
-    BOOT_STATE_DATA = DOUBLE_TAP_MAGIC;
+    BOOT_STATE_DATA = BOOT_STATE_VALUE_DOUBLE_TAP;
 
     busy_delay(500);
 
     /* Timeout happened, continue boot... */
     BOOT_STATE_DATA = 0;
   }
-#endif
 
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
-  firmware_check_before_launch();
+  if (self_flash_allowed) {
+    firmware_check_before_launch();
+  }
   #endif
   serial5_println("Program: 0x%x (0x%x)", __sketch_vectors_ptr, &__sketch_vectors_ptr);
-  serial5_println("StackTop: 0x%x BootState: 0x%x", &__StackTop, BOOT_STATE_ADDRESS);
   serial5_flush();
 
   // return;

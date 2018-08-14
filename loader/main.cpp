@@ -48,11 +48,42 @@ public:
             return false;
         }
 
+        if (false) {
+            debugln("Freeing...");
+            allocator_.free_all_blocks();
+
+            debugln("Creating...");
+            if (!manager_.create()) {
+                panic("Create failed\n");
+                return false;
+            }
+        }
+
         if (!manager_.locate()) {
             panic("Not found\n");
             return false;
         }
 
+        phylum::Files files(&backend_, &allocator_);
+        phylum::UnusedBlockReclaimer reclaimer(&files, &manager_);
+        auto &state = manager_.state();
+        for (auto i = 0; i < (int32_t)FirmwareBank::NumberOfBanks; ++i) {
+            auto addr = state.firmwares.banks[i];
+            if (backend_.geometry().valid(addr)) {
+                debugln("Walk (%lu:%lu)", addr.block, addr.position);
+                reclaimer.walk(addr);
+            }
+            else {
+                // NOTE: This fixes up some gibberish addresses I introduced in testing.
+                state.firmwares.banks[i] = { };
+            }
+        }
+
+        manager_.save();
+
+        reclaimer.reclaim();
+
+        debugln("Ready");
         return true;
     }
 
@@ -90,6 +121,23 @@ public:
 
         return true;
     }
+
+    bool header(FirmwareBank bank, firmware_header_t *header) {
+        auto addr = manager_.state().firmwares.banks[(int32_t)bank];
+        if (!addr.valid()) {
+            return false;
+        }
+
+        auto file = phylum::AllocatedBlockedFile(&backend_, phylum::OpenMode::Read, &allocator_, addr);
+        if (!file.exists()) {
+            return false;
+        }
+        if (file.read((uint8_t *)header, sizeof(firmware_header_t)) != sizeof(firmware_header_t)) {
+            return false;
+        }
+
+        return true;
+    }
 };
 
 static void download(FirmwareStorage &firmware) {
@@ -97,11 +145,20 @@ static void download(FirmwareStorage &firmware) {
 
     fk::Url parsed(url);
 
+    debugln("Reading existing file.");
+
+    firmware_header_t header;
+    firmware.header(FirmwareBank::CoreNew, &header);
+
+    debugln("Existing: '%s'", header.etag);
+
+    debugln("Opening new firmware file.");
+
+    auto &file = firmware.write();
+
     debugln("GET %s", url);
 
     debugln("Connecting...");
-
-    auto &file = firmware.write();
 
     WiFiClient wcl;
     wcl.stop();
@@ -111,7 +168,7 @@ static void download(FirmwareStorage &firmware) {
             "Version",
             "Build",
             "Device-Id",
-            nullptr
+            header.version == FIRMWARE_VERSION_INVALID ? nullptr : header.etag
         };
         fk::HttpHeadersWriter httpWriter(wcl);
         fk::HttpResponseParser httpParser;
@@ -148,10 +205,14 @@ static void download(FirmwareStorage &firmware) {
                                 header.size = httpParser.content_length();
                                 strncpy(header.etag, httpParser.etag(), sizeof(header.etag) - 1);
 
+                                debugln("Writing header ('%s') ('%s')", httpParser.etag(), header.etag);
+
                                 auto headerBytes = file.write((uint8_t *)&header, sizeof(firmware_header_t));
                                 if (headerBytes != sizeof(firmware_header_t)) {
                                     panic("Writing header failed.");
                                 }
+
+                                debugln("Downloading");
                             }
 
                             total += bytes;
@@ -162,16 +223,23 @@ static void download(FirmwareStorage &firmware) {
             }
         }
 
-        if (total > 0) {
-            firmware.update(FirmwareBank::CoreNew, httpParser.etag());
-        }
-
         wcl.stop();
 
         debugln("Done! (%d) (%d bytes)", httpParser.status_code(), total);
+
+        if (total > 0) {
+            firmware.update(FirmwareBank::CoreNew, httpParser.etag());
+            debugln("Waiting 5s before rebooting.");
+            delay(5000);
+            firmware_self_flash();
+        }
+        else {
+            file.erase_all_blocks();
+        }
     }
     else {
         debugln("Connection failed");
+        file.erase_all_blocks();
     }
 }
 
@@ -194,7 +262,9 @@ void setup() {
     digitalWrite(RFM95_PIN_CS, HIGH);
 
     FirmwareStorage firmware;
-    firmware.initialize();
+    if (!firmware.initialize()) {
+        panic("Failed to initialize firmwareStorage");
+    }
 
     WiFi.setPins(WIFI_PIN_CS, WIFI_PIN_IRQ, WIFI_PIN_RST, WIFI_PIN_EN);
 

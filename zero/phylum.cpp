@@ -125,8 +125,6 @@ bool FirmwareManager::flash(FirmwareBank bank) {
         serial5_println("Bank %d: header is invalid!", bank);
     }
 
-    return true;
-
     uint32_t PageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
     uint32_t page_size = PageSizes[NVMCTRL->PARAM.bit.PSZ];
     uint32_t pages = NVMCTRL->PARAM.bit.NVMP;
