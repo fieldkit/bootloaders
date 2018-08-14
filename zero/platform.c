@@ -4,7 +4,7 @@
 #include "board_driver_spi.h"
 
 static volatile uint32_t uptime = 0;
-static bool initialized = false;
+static volatile bool initialized = false;
 
 void platform_setup() {
     pinMode(RFM95_PIN_CS, OUTPUT);
@@ -24,6 +24,7 @@ void platform_setup() {
     digitalWrite(FLASH_PIN, HIGH);
 
     serial5_open();
+
     if (!initialized) {
         serial5_println("\n\nStart!");
         initialized = true;
@@ -61,4 +62,17 @@ uint32_t millis() {
 
 void platform_default_sys_tick() {
     uptime++;
+}
+
+void __cxa_pure_virtual(void) __attribute__ ((__noreturn__));
+void __cxa_deleted_virtual(void) __attribute__ ((__noreturn__));
+
+void __cxa_pure_virtual(void) {
+    while (1) {
+    }
+}
+
+void __cxa_deleted_virtual(void) {
+    while (1) {
+    }
 }

@@ -1,41 +1,16 @@
 #include <string.h>
 
-#include <phylum/backend.h>
-#include <phylum/private.h>
-#include <phylum/serial_flash_state_manager.h>
-#include <phylum/serial_flash_fs.h>
-#include <backends/arduino_serial_flash/serial_flash_allocator.h>
-
+#include "phylum.h"
 #include "firmware_header.h"
 #include "serial5.h"
-#include "phylum.h"
+#include "platform.h"
+#include "nvm_memory.h"
 
 using namespace phylum;
 
 static inline uint32_t get_sf_address(const Geometry &g, BlockAddress a) {
     return (a.block * g.pages_per_block * g.sectors_per_page * g.sector_size) + a.position;
 }
-
-class TinyFlashStorageBackend : public StorageBackend {
-private:
-    flash_memory_t *fmem_;
-    Geometry geometry_;
-
-public:
-    TinyFlashStorageBackend(flash_memory_t *fmem) : fmem_(fmem) {
-    }
-
-public:
-    bool initialize(sector_index_t sector_size);
-
-public:
-    bool open() override;
-    bool close() override;
-    Geometry &geometry() override;
-    bool erase(block_index_t block) override;
-    bool read(BlockAddress addr, void *d, size_t n) override;
-    bool write(BlockAddress addr, void *d, size_t n) override;
-};
 
 bool TinyFlashStorageBackend::initialize(sector_index_t sector_size) {
     auto capacity = fmem_->capacity;
@@ -87,37 +62,22 @@ bool TinyFlashStorageBackend::write(BlockAddress addr, void *d, size_t n) {
     return true;
 }
 
-enum class FirmwareBank {
-    CoreA,
-    CoreB,
-    ModuleA,
-    ModuleB,
-    NumberOfBanks
-};
+bool FirmwareManager::open() {
+    serial5_println("Opening serial flash...");
+    if (!flash_open(&fmem, FLASH_PIN)) {
+        serial5_println("Error opening serial flash");
+        return false;
+    }
 
-struct FirmwareAddresses {
-    phylum::BlockAddress banks[(size_t)FirmwareBank::NumberOfBanks];
-};
-
-struct CoreState : public MinimumSuperBlock {
-    uint32_t time;
-    uint32_t seed;
-    FirmwareAddresses firmwares;
-};
-
-uint8_t phylum_open(flash_memory_t *fmem) {
-    TinyFlashStorageBackend backend{ fmem };
-    SerialFlashAllocator allocator{ backend };
-    SerialFlashStateManager<CoreState> manager{ backend, allocator };
-
+    serial5_println("Opening Phylum...");
     if (!backend.initialize(512)) {
-        serial5_println("Not available");
-        return PHYLUM_FAILURE;
+        serial5_println("Error opening Phylum");
+        return false;
     }
 
     if (!manager.locate()) {
-        serial5_println("Not found");
-        return PHYLUM_FAILURE;
+        serial5_println("No super block");
+        return true;
     }
 
     auto addr = manager.location();
@@ -125,41 +85,88 @@ uint8_t phylum_open(flash_memory_t *fmem) {
 
     serial5_println("Found SuperBlock! (%lu:%lu)", addr.block, addr.sector);
 
-    auto bank0 = state.firmwares.banks[(int32_t)FirmwareBank::CoreA];
-    if (!bank0.valid()) {
-        serial5_println("Bank0 is invalid");
-        return PHYLUM_SUCCESS;
+    return true;
+}
+
+bool FirmwareManager::flash(FirmwareBank bank) {
+    auto &state = manager.state();
+
+    auto addr = state.firmwares.banks[(int32_t)bank];
+    if (!addr.valid()) {
+        return true;
     }
 
-    AllocatedBlockedFile file{ &backend, OpenMode::Read, &allocator, bank0 };
+    AllocatedBlockedFile file{ &backend, OpenMode::Read, &allocator, addr };
+
     file.seek(0);
 
     firmware_header_t header;
-    auto bytes = file.read((uint8_t *)&header, sizeof(firmware_header_t));
+    auto bytes_read = file.read((uint8_t *)&header, sizeof(header));
+    if (bytes_read != sizeof(header)) {
+        return false;
+    }
 
     if (header.version != FIRMWARE_VERSION_INVALID) {
-        serial5_println("Bank0: version=%d size=%d (%s)", header.version, header.size, header.etag);
+        serial5_println("Bank %d: version=%d size=%d (%s)", bank, header.version, header.size, header.etag);
     }
     else {
-        serial5_println("Bank0: header is invalid!");
+        serial5_println("Bank %d: header is invalid!", bank);
     }
 
-    return PHYLUM_SUCCESS;
-}
+    uint32_t PageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
+    uint32_t page_size = PageSizes[NVMCTRL->PARAM.bit.PSZ];
+    uint32_t pages = NVMCTRL->PARAM.bit.NVMP;
+    uint32_t flash_size = page_size * pages;
+    uint32_t writing = FIRMWARE_NVM_PROGRAM_ADDRESS;
+    uint32_t bytes = 0;
 
-uint8_t phylum_close() {
-    return PHYLUM_SUCCESS;
-}
+    serial5_println("Flash: Info: page-size=%d pages=%d", page_size, pages);
+    serial5_println("Flash: Erasing (0x%x -> 0x%x)", writing, flash_size);
 
-extern "C" void __cxa_pure_virtual(void) __attribute__ ((__noreturn__));
-extern "C" void __cxa_deleted_virtual(void) __attribute__ ((__noreturn__));
+    nvm_erase_after(writing);
 
-void __cxa_pure_virtual(void) {
-    while (1) {
+    while (bytes < header.size) {
+        uint8_t buffer[1024];
+
+        serial5_println("Flash: Writing 0x%x -> 0x%x (%d)", buffer, writing, bytes);
+
+        bytes_read = file.read(buffer, sizeof(buffer));
+
+        nvm_write((uint32_t *)writing, (uint32_t *)buffer, sizeof(buffer) / sizeof(uint32_t));
+
+        writing += bytes_read;
+        bytes += bytes_read;
     }
+
+    return true;
 }
 
-void __cxa_deleted_virtual(void) {
-    while (1) {
+bool FirmwareManager::erase(FirmwareBank bank) {
+    auto &state = manager.state();
+
+    serial5_println("Bank %d: Erasing", bank);
+
+    auto addr = state.firmwares.banks[(int32_t)bank];
+    if (!addr.valid()) {
+        serial5_println("Bank %d: Invalid");
+        return true;
     }
+
+    state.firmwares.banks[(int32_t)bank] = { };
+
+    if (!manager.save()) {
+        return false;
+    }
+
+    AllocatedBlockedFile file{ &backend, OpenMode::Write, &allocator, addr };
+
+    file.seek(0);
+
+    if (!file.erase_all_blocks()) {
+        return false;
+    }
+
+    serial5_println("Bank %d: Done", bank);
+
+    return true;
 }

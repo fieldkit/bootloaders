@@ -1,8 +1,15 @@
 #include <stdarg.h>
 
 #include <Arduino.h>
+
+#include <phylum/backend.h>
+#include <phylum/private.h>
+#include <phylum/serial_flash_state_manager.h>
+#include <phylum/serial_flash_fs.h>
+#include <backends/arduino_serial_flash/arduino_serial_flash.h>
+#include <backends/arduino_serial_flash/serial_flash_allocator.h>
+
 #include <WiFi101.h>
-#include <SerialFlash.h>
 
 #include "firmware_header.h"
 
@@ -72,23 +79,8 @@ static const char *getWifiStatus(uint8_t status) {
     }
 }
 
-static void flash_erase() {
-    auto starting = FLASH_FIRMWARE_BANK_1_ADDRESS;
-    auto block_size = SerialFlash.blockSize();
-    auto address = starting;
-
-    debugf("Erasing: %d -> %d\n", starting, starting + block_size * 8);
-
-    for (auto i = 0; i < 8; ++i) {
-        auto address = starting + i * block_size;
-        SerialFlash.eraseBlock(address);
-    }
-}
-
 static void download(firmware_header_t *existing) {
     WiFiClient wcl;
-    uint32_t starting = FLASH_FIRMWARE_BANK_1_ADDRESS;
-    uint32_t address = starting;
 
     wcl.stop();
 
@@ -135,14 +127,7 @@ static void download(firmware_header_t *existing) {
                     auto bytes = wcl.read(buffer, sizeof(buffer));
                     if (bytes > 0) {
                         if (httpParser.status_code() == 200) {
-                            if (total == 0) {
-                                flash_erase();
-                            }
-
-                            SerialFlash.write(address, buffer, bytes);
-
                             total += bytes;
-                            address += bytes;
                         }
                     }
                 }
@@ -152,12 +137,6 @@ static void download(firmware_header_t *existing) {
         debugf("Status: %d\n", httpParser.status_code());
 
         if (total > 0) {
-            firmware_header_t header;
-            header.version = 1;
-            header.position = starting;
-            header.size = total;
-            strncpy(header.etag, httpParser.etag(), sizeof(header.etag));
-            SerialFlash.write(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &header, sizeof(header));
         }
 
         wcl.stop();
@@ -168,6 +147,15 @@ static void download(firmware_header_t *existing) {
         debugf("Connection failed\n");
     }
 }
+
+class FirmwareLoader {
+private:
+
+public:
+};
+
+class CoreState : public phylum::MinimumSuperBlock {
+};
 
 void setup() {
     Serial5.begin(115200);
@@ -187,8 +175,17 @@ void setup() {
     digitalWrite(WIFI_PIN_CS, HIGH);
     digitalWrite(RFM95_PIN_CS, HIGH);
 
-    if (!SerialFlash.begin(FLASH_PIN_CS)) {
-        panic("No serial flash");
+    phylum::NoopStorageBackendCallbacks callbacks;
+    phylum::ArduinoSerialFlashBackend backend{ callbacks };
+    phylum::SerialFlashAllocator allocator{ backend };
+    phylum::SerialFlashStateManager<CoreState> manager{ backend, allocator };
+
+    if (!backend.initialize(FLASH_PIN_CS, 512)) {
+        panic("Not availabl\ne");
+    }
+
+    if (!manager.locate()) {
+        panic("Not found\n");
     }
 
     WiFi.setPins(WIFI_PIN_CS, WIFI_PIN_IRQ, WIFI_PIN_RST, WIFI_PIN_EN);
@@ -215,16 +212,6 @@ void setup() {
         }
 
         if (WiFi.status() == WL_CONNECTED) {
-            firmware_header_t bank1;
-            SerialFlash.read(FLASH_FIRMWARE_BANK_1_HEADER_ADDRESS, &bank1, sizeof(bank1));
-            if (false && bank1.version != FIRMWARE_VERSION_INVALID) {
-                debugf("Bank1: version=%d size=%d\n", bank1.version, bank1.size);
-            }
-            else {
-                download(&bank1);
-                debugf("Address: %d\n", FLASH_FIRMWARE_BANK_1_ADDRESS);
-            }
-
             while (true) {
                 delay(500);
             }

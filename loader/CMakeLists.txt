@@ -1,4 +1,4 @@
-set(ARDUINO_IDE "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-1.8.3") 
+set(ARDUINO_IDE "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-1.8.3")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-cmake-minimal/cmake/")
 
 include(ArduinoMinimal)
@@ -12,3 +12,6 @@ include_directories(./)
 include_directories(../include)
 
 arduino(loader "${SOURCE_FILES}" "${LIBRARIES}")
+
+add_definitions(-DPHYLUM_ENABLE_SERIAL_FLASH)
+target_compile_options(arduino_zero_phylum PUBLIC -DPHYLUM_ENABLE_SERIAL_FLASH)

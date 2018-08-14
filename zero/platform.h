@@ -15,6 +15,10 @@
 
 #define INACTIVITY_TIMEOUT   (1000 * 60 * 2)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void platform_setup();
 
 void board_initialize(void);
@@ -26,5 +30,9 @@ void delay(uint32_t ms);
 uint32_t millis();
 
 void platform_default_sys_tick();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // _PLATOFMR_H_

@@ -155,8 +155,16 @@ uint32_t* pulSketch_Start_Address;
 #	define DEBUG_PIN_LOW 	do{}while(0)
 #endif
 
+static uint32_t began = 0;
+
 int loop() {
-    if (millis() > INACTIVITY_TIMEOUT) {
+    if (began == 0) {
+        serial5_println("Waiting");
+        began = millis();
+    }
+    if (millis() - began > INACTIVITY_TIMEOUT) {
+        serial5_println("Reboot (%lu)", millis() - began);
+        serial5_flush();
         NVIC_SystemReset();
     }
 
@@ -209,13 +217,13 @@ int main(void)
 
   /* Start the sys tick (1 ms) */
   SysTick_Config(VARIANT_MCK / 1000);
+  // SysTick_Config(1000);
 
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   platform_setup();
   #endif
 
-  serial5_println("Waiting...");
-  serial5_flush();
+  began = 0;
 
   /* Wait for a complete enum on usb or a '#' char on serial line */
   while (1)
