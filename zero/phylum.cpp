@@ -12,9 +12,6 @@
 
 using namespace phylum;
 
-#define PHYLUM_FAILURE           (0)
-#define PHYLUM_SUCCESS           (1)
-
 static inline uint32_t get_sf_address(const Geometry &g, BlockAddress a) {
     return (a.block * g.pages_per_block * g.sectors_per_page * g.sector_size) + a.position;
 }

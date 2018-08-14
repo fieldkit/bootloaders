@@ -7,6 +7,9 @@
 extern "C" {
 #endif
 
+#define PHYLUM_FAILURE           (0)
+#define PHYLUM_SUCCESS           (1)
+
 uint8_t phylum_open(flash_memory_t *fmem);
 
 uint8_t phylum_close();
