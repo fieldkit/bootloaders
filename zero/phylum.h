@@ -4,7 +4,7 @@
 #include <phylum/backend.h>
 #include <phylum/private.h>
 #include <phylum/serial_flash_state_manager.h>
-#include <phylum/serial_flash_fs.h>
+#include <phylum/files.h>
 #include <backends/arduino_serial_flash/serial_flash_allocator.h>
 
 #include "serial_flash.h"

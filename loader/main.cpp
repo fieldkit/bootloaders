@@ -5,7 +5,8 @@
 #include <phylum/backend.h>
 #include <phylum/private.h>
 #include <phylum/serial_flash_state_manager.h>
-#include <phylum/serial_flash_fs.h>
+#include <phylum/files.h>
+#include <phylum/unused_block_reclaimer.h>
 #include <backends/arduino_serial_flash/arduino_serial_flash.h>
 #include <backends/arduino_serial_flash/serial_flash_allocator.h>
 
