@@ -4,6 +4,6 @@ conservifyProperties()
 
 timestamps {
     node () {
-        conservifyBuild(name: 'bootloaders')
+        conservifyBuild(name: 'bootloaders', archive: true)
     }
 }
