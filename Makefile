@@ -20,5 +20,6 @@ clean:
 	rm -rf build
 
 veryclean: clean
+	rm -rf gitdeps
 
 .PHONY: build
