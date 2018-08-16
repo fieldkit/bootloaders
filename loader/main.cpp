@@ -4,8 +4,8 @@
 
 #include <phylum/backend.h>
 #include <phylum/private.h>
-#include <phylum/serial_flash_state_manager.h>
 #include <phylum/files.h>
+#include <phylum/basic_super_block_manager.h>
 #include <phylum/unused_block_reclaimer.h>
 #include <backends/arduino_serial_flash/arduino_serial_flash.h>
 #include <backends/arduino_serial_flash/serial_flash_allocator.h>
@@ -39,7 +39,7 @@ private:
     phylum::NoopStorageBackendCallbacks callbacks_;
     phylum::ArduinoSerialFlashBackend backend_{ callbacks_ };
     phylum::SerialFlashAllocator allocator_{ backend_ };
-    phylum::SerialFlashStateManager<CoreState> manager_{ backend_, allocator_ };
+    phylum::BasicSuperBlockManager<CoreState> manager_{ backend_, allocator_ };
     phylum::AllocatedBlockedFile opened_;
 
 public:
@@ -66,7 +66,7 @@ public:
         }
 
         phylum::Files files(&backend_, &allocator_);
-        phylum::UnusedBlockReclaimer reclaimer(&files, &manager_);
+        phylum::UnusedBlockReclaimer reclaimer(files, manager_.manager());
         auto &state = manager_.state();
         for (auto i = 0; i < (int32_t)FirmwareBank::NumberOfBanks; ++i) {
             auto addr = state.firmwares.banks[i];

@@ -2,7 +2,7 @@
 #define _CORE_STATE_H_
 
 #include <phylum/private.h>
-#include <phylum/wandering_block_manager.h>
+#include <phylum/super_block_manager.h>
 
 enum class FirmwareBank {
     Core,

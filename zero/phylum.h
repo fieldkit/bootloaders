@@ -3,7 +3,7 @@
 
 #include <phylum/backend.h>
 #include <phylum/private.h>
-#include <phylum/serial_flash_state_manager.h>
+#include <phylum/basic_super_block_manager.h>
 #include <phylum/files.h>
 #include <backends/arduino_serial_flash/serial_flash_allocator.h>
 
@@ -37,7 +37,7 @@ private:
     flash_memory_t fmem;
     TinyFlashStorageBackend backend{ &fmem };
     phylum::SerialFlashAllocator allocator{ backend };
-    phylum::SerialFlashStateManager<CoreState> manager{ backend, allocator };
+    phylum::BasicSuperBlockManager<CoreState> manager{ backend, allocator };
 
 public:
     bool open();
