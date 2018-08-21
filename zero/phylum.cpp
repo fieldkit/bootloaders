@@ -1,3 +1,5 @@
+#if defined(FK_BOOTLOADER_LARGE)
+
 #include <string.h>
 
 #include "phylum.h"
@@ -209,3 +211,5 @@ bool FirmwareManager::get_existing(firmware_header_t *header) {
 
     return true;
 }
+
+#endif // defined(FK_BOOTLOADER_LARGE)

@@ -1,5 +1,7 @@
 #include "wiring.h"
 
+#if defined(FK_BOOTLOADER_LARGE)
+
 #define PIN_ATTR_NONE          (0UL<<0)
 #define PIN_ATTR_COMBO         (1UL<<0)
 #define PIN_ATTR_ANALOG        (1UL<<1)
@@ -231,3 +233,4 @@ void digitalWrite(uint32_t ulPin, uint32_t ulVal) {
     return;
 }
 
+#endif

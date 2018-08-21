@@ -1,25 +1,37 @@
-set(ARDUINO_IDE "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-1.8.3") 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-cmake-minimal/cmake/")
+include(Arduino)
 
-include(ArduinoMinimal)
+enable_arduino_toolchain()
 
-set(ARDUINO_INCLUDE_CORE OFF)
+find_package(phylum)
+find_package(arduino-logging)
 
-set(LIBRARIES)
-file(GLOB SOURCE_FILES *.c *.cpp)
+file(GLOB sources *.c *.cpp)
 
-include_directories(./)
 include_directories(../include)
 
-set(ARDUINO_BOOTLOADER "${CMAKE_CURRENT_SOURCE_DIR}/samd21x18_small_bootloader.ld")
 
-arduino(fk-bootloaders-samd21small "${SOURCE_FILES}" "${LIBRARIES}")
+# Small Bootloader
+add_arduino_library(fk-bootloaders-samd21small "${sources}")
+
 target_compile_options(fk-bootloaders-samd21small PUBLIC -DFK_BOOTLOADER_SMALL)
 
-set(ARDUINO_BOOTLOADER "${CMAKE_CURRENT_SOURCE_DIR}/samd21x18_large_bootloader.ld")
+configure_firmware_linker_script(fk-bootloaders-samd21small "${CMAKE_CURRENT_SOURCE_DIR}/samd21x18_small_bootloader.ld")
 
-arduino(fk-bootloaders-samd21large "${SOURCE_FILES}" "${LIBRARIES}")
+add_arduino_bootloader(fk-bootloaders-samd21small)
+
+
+# Self Flashing / Large Bootloader
+add_arduino_library(fk-bootloaders-samd21large "${sources}")
+
 target_compile_options(fk-bootloaders-samd21large PUBLIC -DFK_BOOTLOADER_LARGE)
 target_compile_options(fk-bootloaders-samd21large PUBLIC -DFK_BOOTLOADER_ENABLE_FLASH)
 target_compile_options(fk-bootloaders-samd21large PUBLIC -DFK_BOOTLOADER_ENABLE_SERIAL5)
-target_compile_options(arduino_zero_arduino-logging PUBLIC -DARDUINO_LOGGING_DISABLE)
+
+target_compile_options(arduino-logging PUBLIC -DARDUINO_LOGGING_DISABLE)
+
+target_link_libraries(fk-bootloaders-samd21large phylum)
+target_link_libraries(fk-bootloaders-samd21large arduino-logging)
+
+configure_firmware_linker_script(fk-bootloaders-samd21large "${CMAKE_CURRENT_SOURCE_DIR}/samd21x18_large_bootloader.ld")
+
+add_arduino_bootloader(fk-bootloaders-samd21large)

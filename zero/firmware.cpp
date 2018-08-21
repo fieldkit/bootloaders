@@ -1,3 +1,5 @@
+#if defined(FK_BOOTLOADER_LARGE)
+
 #include <string.h>
 
 #include "firmware.h"
@@ -32,3 +34,5 @@ uint8_t firmware_backups_erase() {
 
     return 0;
 }
+
+#endif // defined(FK_BOOTLOADER_LARGE)
