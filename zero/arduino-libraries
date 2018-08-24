@@ -1,4 +1,3 @@
-../phylum
-../enhanced-io
-https://github.com/Conservify/arduino-logging.git
+https://github.com/Conservify/phylum.git *
+https://github.com/Conservify/enhanced-io.git *
 https://github.com/PaulStoffregen/SerialFlash.git a3508c30be8d8a3c705572d0bfc8d048adcd29ff
