@@ -5,8 +5,8 @@
 all: build
 
 gitdeps:
-	simple-deps --config loader/arduino-libraries
-	simple-deps --config zero/arduino-libraries
+	simple-deps --config loader/dependencies.sd
+	simple-deps --config zero/dependencies.sd
 
 loader/secrets.h:
 	cp loader/secrets.h.template loader/secrets.h
