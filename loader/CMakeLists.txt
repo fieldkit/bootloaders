@@ -1,17 +1,20 @@
-set(ARDUINO_IDE "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-1.8.3")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../arduino-cmake-minimal/cmake/")
+include(Arduino)
 
-include(ArduinoMinimal)
-
-set(ARDUINO_BOOTLOADER "${CMAKE_CURRENT_SOURCE_DIR}/samd21x18_large_bootloader.ld")
-
-file(GLOB SOURCE_FILES *.cpp)
-set(LIBRARIES SPI Wire)
+enable_arduino_toolchain()
 
 include_directories(./)
 include_directories(../include)
 
-arduino(loader "${SOURCE_FILES}" "${LIBRARIES}")
+file(GLOB sources *.cpp)
+add_arduino_library(loader "${sources}")
 
-add_definitions(-DPHYLUM_ENABLE_SERIAL_FLASH)
-target_compile_options(arduino_zero_phylum PUBLIC -DPHYLUM_ENABLE_SERIAL_FLASH)
+configure_firmware_linker_script(loader "${CMAKE_CURRENT_SOURCE_DIR}/samd21x18_large_bootloader.ld")
+
+find_package(phylum)
+target_link_libraries(loader phylum)
+target_compile_options(phylum PUBLIC -DPHYLUM_ENABLE_SERIAL_FLASH)
+
+find_package(WiFi101)
+target_link_libraries(loader WiFi101)
+
+add_arduino_firmware(loader)
