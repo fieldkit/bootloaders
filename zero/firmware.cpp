@@ -12,7 +12,7 @@ uint8_t firmware_check() {
         return 0;
     }
 
-    firmware.flash(FirmwareBank::CoreNew);
+    firmware.flash(FirmwareBank::Pending);
 
     return 0;
 }
@@ -30,7 +30,7 @@ uint8_t firmware_backups_erase() {
         return 0;
     }
 
-    firmware.clear(FirmwareBank::Core, false);
+    firmware.clear(FirmwareBank::Pending, false);
 
     return 0;
 }

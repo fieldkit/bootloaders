@@ -149,7 +149,7 @@ static void download(FirmwareStorage &firmware) {
     debugln("Reading existing file.");
 
     firmware_header_t header;
-    firmware.header(FirmwareBank::CoreNew, &header);
+    firmware.header(FirmwareBank::Pending, &header);
 
     debugln("Existing: '%s'", header.etag);
 
@@ -229,7 +229,7 @@ static void download(FirmwareStorage &firmware) {
         debugln("Done! (%d) (%d bytes)", httpParser.status_code(), total);
 
         if (total > 0) {
-            firmware.update(FirmwareBank::CoreNew, httpParser.etag());
+            firmware.update(FirmwareBank::Pending, httpParser.etag());
             debugln("Waiting 5s before rebooting.");
             delay(5000);
             firmware_self_flash();

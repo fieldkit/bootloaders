@@ -5,12 +5,35 @@
 #include <phylum/super_block_manager.h>
 
 enum class FirmwareBank {
-    Core,
-    CoreNew,
-    CoreGood,
-    Module,
-    ModuleNew,
-    ModuleGood,
+    /**
+     * Backup of the original firmware.
+     */
+    Backup,
+
+    /**
+     * Pending firmware, this is where we flash from.
+     */
+    Pending,
+
+    /**
+     * Bank where downloaded module firmware goes.
+     */
+    Incoming,
+
+    /**
+     * Copy of safe firmware.
+     */
+    Safe,
+
+    /**
+     * Reserved for future use.
+     */
+    Reserved0,
+
+    /**
+     * Reserved for future use.
+     */
+    Reserved1,
     NumberOfBanks
 };
 
