@@ -69,7 +69,20 @@ bool TinyFlashStorageBackend::write(BlockAddress addr, void *d, size_t n) {
 
 bool FirmwareManager::open() {
     serial5_println("Opening serial flash...");
-    if (!flash_open(&fmem, FLASH_PIN)) {
+
+    bool success = false;
+
+    for (size_t i = 0; i < sizeof(possible_boards) / sizeof(board_configuration_t); ++i) {
+        board_prepare(&possible_boards[i]);
+
+        if (flash_open(&fmem, possible_boards[i].flash_cs)) {
+            serial5_println("Flash found on %d (power = %d)", possible_boards[i].flash_cs, possible_boards[i].periph_enable);
+            success = true;
+            break;
+        }
+    }
+
+    if (!success) {
         serial5_println("Error opening serial flash");
         return false;
     }

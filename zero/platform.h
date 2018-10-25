@@ -7,17 +7,25 @@
 #define PAD_SPI_TX           SPI_PAD_2_SCK_3
 #define PAD_SPI_RX           SERCOM_RX_PAD_0
 
-#define WIFI_PIN_CS          (7u)
-#define RFM95_PIN_CS         (5u)
-#define SD_PIN_CS            (12u)
-#define FLASH_PIN            (26u)
-#define PERIPH_ENABLE_PIN    (25u)
+typedef struct board_configuration_t {
+    uint8_t periph_enable;
+    uint8_t flash_cs;
+    uint8_t sd_cs;
+    uint8_t wifi_cs;
+    uint8_t rfm95_cs;
+} board_configuration_t;
+
+#define FK_NUMBER_OF_POSSIBLE_BOARDS 4
+
+extern board_configuration_t possible_boards[FK_NUMBER_OF_POSSIBLE_BOARDS];
 
 #define INACTIVITY_TIMEOUT   (1000 * 60 * 2)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void board_prepare(board_configuration_t *cfg);
 
 void platform_setup();
 

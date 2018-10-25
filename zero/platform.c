@@ -4,27 +4,50 @@
 #include "board_driver_spi.h"
 
 static volatile uint32_t uptime = 0;
+
 static volatile bool initialized = false;
 
-void platform_setup() {
-    pinMode(RFM95_PIN_CS, OUTPUT);
-    pinMode(SD_PIN_CS, OUTPUT);
-    pinMode(WIFI_PIN_CS, OUTPUT);
-    pinMode(FLASH_PIN, OUTPUT);
+/**
+ * I wish these were just standardized. FK-509
+ */
+board_configuration_t possible_boards[FK_NUMBER_OF_POSSIBLE_BOARDS] = {
+    { 25u, 26u, 12u,  7u,  5u }, // Core
+    {  8u,  6u,  0u,  0u,  5u }, // Sonar
+    { 12u,  5u,  0u,  0u,  0u }, // Atlas
+    {  8u,  5u,  0u,  0u,  0u }, // Weather
+};
 
-    if (false) {
-        pinMode(PERIPH_ENABLE_PIN, OUTPUT);
-        digitalWrite(PERIPH_ENABLE_PIN, LOW);
-        busy_delay(500);
-        digitalWrite(PERIPH_ENABLE_PIN, HIGH);
-        busy_delay(500);
+void board_prepare(board_configuration_t *cfg) {
+    if (cfg->rfm95_cs > 0) {
+        pinMode(cfg->rfm95_cs, OUTPUT);
+        digitalWrite(cfg->rfm95_cs, HIGH);
     }
 
-    digitalWrite(RFM95_PIN_CS, HIGH);
-    digitalWrite(SD_PIN_CS, HIGH);
-    digitalWrite(WIFI_PIN_CS, HIGH);
-    digitalWrite(FLASH_PIN, HIGH);
+    if (cfg->sd_cs > 0) {
+        pinMode(cfg->sd_cs, OUTPUT);
+        digitalWrite(cfg->sd_cs, HIGH);
+    }
 
+    if (cfg->wifi_cs > 0) {
+        pinMode(cfg->wifi_cs, OUTPUT);
+        digitalWrite(cfg->wifi_cs, HIGH);
+    }
+
+    if (cfg->flash_cs > 0) {
+        pinMode(cfg->flash_cs, OUTPUT);
+        digitalWrite(cfg->flash_cs, HIGH);
+    }
+
+    if (cfg->periph_enable > 0) {
+        pinMode(cfg->periph_enable, OUTPUT);
+        digitalWrite(cfg->periph_enable, LOW);
+        busy_delay(100);
+        digitalWrite(cfg->periph_enable, HIGH);
+        busy_delay(100);
+    }
+}
+
+void platform_setup() {
     serial5_open();
 
     if (!initialized) {
