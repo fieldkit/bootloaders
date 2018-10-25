@@ -10,6 +10,9 @@
 
 using namespace phylum;
 
+void operator delete(void * p) {
+}
+
 static inline uint32_t get_sf_address(const Geometry &g, BlockAddress a) {
     return (a.block * g.pages_per_block * g.sectors_per_page * g.sector_size) + a.position;
 }
