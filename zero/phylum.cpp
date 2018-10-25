@@ -88,7 +88,7 @@ bool FirmwareManager::open() {
     }
 
     serial5_println("Opening Phylum...");
-    if (!backend.initialize(512)) {
+    if (!backend.initialize(2048)) {
         serial5_println("Error opening Phylum");
         return false;
     }
