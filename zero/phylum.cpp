@@ -171,6 +171,12 @@ bool FirmwareManager::flash(FirmwareBank bank) {
         }
         while (size < sizeof(buffer));
 
+        // NOTE: This is bad, we've reached the end of the file unexpectedly.
+        if (size == 0) {
+            serial5_println("Unexpected end of file! (%d != %d)", writing, header.size);
+            break;
+        }
+
         nvm_write((uint32_t *)writing, (uint32_t *)buffer, size / sizeof(uint32_t));
 
         writing += size;
