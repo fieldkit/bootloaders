@@ -118,6 +118,67 @@ bool FirmwareManager::open() {
     return true;
 }
 
+bool FirmwareManager::check(FirmwareBank bank) {
+    auto &state = manager.state();
+
+    auto addr = state.firmwares.banks[(int32_t)bank];
+    if (!addr.valid()) {
+        serial5_println("Bank %d: address is invalid.", bank);
+        return true;
+    }
+
+    AllocatedBlockedFile file{ &backend, OpenMode::Read, &allocator, addr };
+
+    file.seek(UINT64_MAX);
+    file.seek(0);
+
+    serial5_println("Bank %d: size=%lu", bank, (uint32_t)file.size());
+
+    firmware_header_t header;
+    auto bytes_read = file.read((uint8_t *)&header, sizeof(header));
+    if (bytes_read != sizeof(header)) {
+        return false;
+    }
+
+    if (header.version != FIRMWARE_VERSION_INVALID) {
+        serial5_println("Bank %d: version=%d time=%lu size=%d (%s)", bank, header.version, header.time, header.size, header.etag);
+    }
+    else {
+        serial5_println("Bank %d: header is invalid!", bank);
+        return false;
+    }
+
+    uint32_t bytes = 0;
+
+    while (bytes < header.size) {
+        uint8_t buffer[1024];
+        size_t size{ 0 };
+
+        serial5_println("Flash: Reading (%d)", bytes);
+
+        do {
+            auto bytes_read = file.read(buffer + size, sizeof(buffer) - size);
+            if (bytes_read == 0) {
+                break;
+            }
+            size += bytes_read;
+        }
+        while (size < sizeof(buffer));
+
+        // NOTE: This is bad, we've reached the end of the file unexpectedly.
+        if (size == 0) {
+            serial5_println("Unexpected end of file!");
+            break;
+        }
+
+        bytes += size;
+    }
+
+    serial5_println("Flash: Reading (%d)", bytes);
+
+    return true;
+}
+
 bool FirmwareManager::flash(FirmwareBank bank) {
     auto &state = manager.state();
 
@@ -129,6 +190,7 @@ bool FirmwareManager::flash(FirmwareBank bank) {
 
     AllocatedBlockedFile file{ &backend, OpenMode::Read, &allocator, addr };
 
+    file.seek(UINT64_MAX);
     file.seek(0);
 
     firmware_header_t header;

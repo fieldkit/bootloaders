@@ -41,6 +41,7 @@ private:
 
 public:
     bool open();
+    bool check(FirmwareBank bank);
     bool flash(FirmwareBank bank);
     bool clear(FirmwareBank bank, bool erase_file);
 

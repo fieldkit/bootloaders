@@ -12,7 +12,9 @@ uint8_t firmware_check() {
         return 0;
     }
 
-    firmware.flash(FirmwareBank::Pending);
+    if (firmware.check(FirmwareBank::Pending)) {
+        firmware.flash(FirmwareBank::Pending);
+    }
 
     return 0;
 }
