@@ -2,11 +2,14 @@
 
 #include <string.h>
 
+#include "serial5.h"
 #include "firmware.h"
 #include "phylum.h"
 
 uint8_t firmware_check() {
     FirmwareManager firmware;
+
+    serial5_println("Checking Firmware...");
 
     if (!firmware.open()) {
         return 0;

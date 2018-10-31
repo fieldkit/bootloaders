@@ -51,7 +51,7 @@ void platform_setup() {
     serial5_open();
 
     if (!initialized) {
-        serial5_println("\n\nStart!");
+        serial5_println("\n\nStart!\n");
         initialized = true;
     }
 
