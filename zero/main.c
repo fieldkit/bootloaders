@@ -58,6 +58,8 @@ uint32_t* pulSketch_Start_Address;
   if (__sketch_vectors_ptr == 0xFFFFFFFF)
   {
     /* Stay in bootloader */
+    serial5_println("No program: 0x%x (0x%x)", __sketch_vectors_ptr, &__sketch_vectors_ptr);
+    serial5_flush();
     return;
   }
 
@@ -77,6 +79,8 @@ uint32_t* pulSketch_Start_Address;
   if ( ((uint32_t)(&__sketch_vectors_ptr) & ~SCB_VTOR_TBLOFF_Msk) != 0x00)
   {
     /* Stay in bootloader */
+    serial5_println("No vector table: 0x%x (0x%x)", __sketch_vectors_ptr, &__sketch_vectors_ptr);
+    serial5_flush();
     return;
   }
 
@@ -92,13 +96,17 @@ uint32_t* pulSketch_Start_Address;
     if (BOOT_STATE_DATA == BOOT_STATE_VALUE_DOUBLE_TAP)
     {
       /* Second tap, stay in bootloader */
+      serial5_println("BootSate == 0x%x, stay in bootloader!", BOOT_STATE_VALUE_DOUBLE_TAP);
+      serial5_flush();
       BOOT_STATE_DATA = 0;
       return;
     }
     if (BOOT_STATE_DATA == BOOT_STATE_VALUE_FLASH)
     {
-        serial5_println("BootSate == 0x%x, self flash allowed!", BOOT_STATE_VALUE_FLASH);
-        self_flash_allowed = true;
+      serial5_println("BootSate == 0x%x, self flash allowed!", BOOT_STATE_VALUE_FLASH);
+      serial5_flush();
+      BOOT_STATE_DATA = 0;
+      self_flash_allowed = true;
     }
 
     /* First tap */
@@ -143,9 +151,9 @@ static uint32_t began = 0;
 int loop() {
     if (began == 0) {
         serial5_println("Waiting");
-        began = millis();
+        began = millis() + 1;
     }
-    if (millis() - began > INACTIVITY_TIMEOUT) {
+    else if (millis() > began && millis() - began > INACTIVITY_TIMEOUT) {
         serial5_println("Reboot (%lu)", millis() - began);
         serial5_flush();
         NVIC_SystemReset();
