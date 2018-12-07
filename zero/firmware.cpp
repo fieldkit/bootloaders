@@ -5,19 +5,20 @@
 #include "serial5.h"
 #include "firmware.h"
 #include "phylum.h"
+#include "platform.h"
 
 uint8_t firmware_check() {
     FirmwareManager firmware;
 
     serial5_println("Checking Firmware...");
 
-    if (!firmware.open()) {
-        return 0;
+    if (firmware.open()) {
+        if (firmware.check(FirmwareBank::Pending)) {
+            firmware.flash(FirmwareBank::Pending);
+        }
     }
 
-    if (firmware.check(FirmwareBank::Pending)) {
-        firmware.flash(FirmwareBank::Pending);
-    }
+    platform_board_disable();
 
     return 0;
 }
@@ -36,6 +37,8 @@ uint8_t firmware_backups_erase() {
     }
 
     firmware.clear(FirmwareBank::Pending, false);
+
+    platform_board_disable();
 
     return 0;
 }

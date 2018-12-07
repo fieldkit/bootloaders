@@ -47,6 +47,28 @@ void board_prepare(board_configuration_t *cfg) {
     }
 }
 
+
+static uint8_t disabled_pins[] = {
+    /* SPI_PIN_MISO */ 22,
+    /* SPI_PIN_MOSI */ 23,
+    /* SPI_PIN_SCK */ 24,
+    /* I2C_PIN_SDA1 */ 20,
+    /* I2C_PIN_SCL1 */ 21,
+    /* I2C_PIN_SDA2 */ 4,
+    /* I2C_PIN_SCL2 */ 3,
+    /* WIFI_PIN_CS */ 7,
+    /* FLASH_PIN_CS */ (26u),
+    /* SD_PIN_CS */ 12,
+    /* RFM95_PIN_CS */ 5,
+    0
+};
+
+void platform_board_disable() {
+    for (size_t i = 0; disabled_pins[i] > 0; ++i) {
+        pinMode(i, INPUT);
+    }
+}
+
 void platform_setup() {
     serial5_open();
 
@@ -55,7 +77,7 @@ void platform_setup() {
         initialized = true;
     }
 
-    spi_open();
+    platform_board_disable();
 }
 
 void busy_delay(uint32_t ms) {

@@ -29,6 +29,8 @@ void board_prepare(board_configuration_t *cfg);
 
 void platform_setup();
 
+void platform_board_disable();
+
 void board_initialize(void);
 
 void busy_delay(uint32_t ms);

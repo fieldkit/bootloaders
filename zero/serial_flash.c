@@ -242,6 +242,8 @@ uint8_t flash_read(flash_memory_t *flash, uint32_t addr, void *buf, uint32_t len
 }
 
 uint8_t flash_open(flash_memory_t *flash, uint8_t cs) {
+    spi_open();
+
     flash->cs = cs;
 
     uint32_t size = flash_calculate_capacity(flash);
