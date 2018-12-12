@@ -14,7 +14,7 @@ loader/secrets.h:
 build: gitdeps loader/secrets.h
 	mkdir -p build
 	cd build && cmake ../
-	cd build && make
+	$(MAKE) -C build
 
 clean:
 	rm -rf build
