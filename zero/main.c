@@ -201,10 +201,6 @@ int main(void)
 
   /* Initialize LEDs */
   LED_init();
-  LEDRX_init();
-  LEDRX_off();
-  LEDTX_init();
-  LEDTX_off();
 
   /* Start the sys tick (1 ms) */
   SysTick_Config(VARIANT_MCK / 1000);
