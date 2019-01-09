@@ -13,10 +13,6 @@
 #define INPUT_PULLUP    (0x2)
 #define INPUT_PULLDOWN  (0x3)
 
-void pinMode(uint32_t ulPin, uint32_t ulMode);
-
-void digitalWrite(uint32_t ulPin, uint32_t ulVal);
-
 typedef enum _EPioType
 {
     PIO_NOT_A_PIN = -1,   /* Not under control of a peripheral. */
@@ -78,8 +74,20 @@ typedef struct _PinDescription
     EExt_Interrupts ulExtInt ;
 } PinDescription ;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int pinPeripheral(uint32_t ulPin, EPioType ulPeripheral);
 
+void pinMode(uint32_t ulPin, uint32_t ulMode);
+
+void digitalWrite(uint32_t ulPin, uint32_t ulVal);
+
 extern PinDescription g_APinDescription[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -34,7 +34,6 @@ inline void LED_on(void) { }
 inline void LED_off(void) { }
 inline void LED_toggle(void) { }
 #endif
-void LED_pulse();
 
 #if defined(BOARD_LEDRX_PORT)
 inline void LEDRX_init(void) { PORT->Group[BOARD_LEDRX_PORT].DIRSET.reg = (1<<BOARD_LEDRX_PIN); }
@@ -58,6 +57,16 @@ inline void LEDTX_init(void) { }
 inline void LEDTX_on(void) { }
 inline void LEDTX_off(void) { }
 inline void LEDTX_toggle(void) { }
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void LED_pulse();
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif // _BOARD_DRIVER_LED_
