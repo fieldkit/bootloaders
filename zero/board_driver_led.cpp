@@ -23,13 +23,23 @@ volatile uint8_t ledKeepValue = 0;
 volatile uint8_t ledTargetValue = 20;
 volatile int8_t ledDirection = 1;
 
-inline void LED_pulse()
+#if defined(FK_BOOTLOADER_LARGE)
+
+#include <Adafruit_NeoPixel.h>
+
+static Adafruit_NeoPixel pixel_{ 1, A3, NEO_GRB + NEO_KHZ400 };
+
+#endif
+
+extern "C" {
+
+void LED_pulse()
 {
   if (ledKeepValue == 0) {
     ledTargetValue += ledDirection;
     LED_toggle();
   }
-  ledKeepValue ++;
+  ledKeepValue++;
 
   if (ledTargetValue > 240 || ledTargetValue < 10) {
     ledDirection = -ledDirection;
@@ -39,4 +49,6 @@ inline void LED_pulse()
   if (ledKeepValue == ledTargetValue) {
     LED_toggle();
   }
+}
+
 }
