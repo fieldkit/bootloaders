@@ -41,6 +41,105 @@ typedef enum _EPortType
     PORTC = 2,
 } EPortType ;
 
+/* Definitions and types for pins */
+typedef enum _EAnalogChannel
+{
+    No_ADC_Channel=-1,
+    ADC_Channel0=0,
+    ADC_Channel1=1,
+    ADC_Channel2=2,
+    ADC_Channel3=3,
+    ADC_Channel4=4,
+    ADC_Channel5=5,
+    ADC_Channel6=6,
+    ADC_Channel7=7,
+#if defined __SAMD21J18A__
+    ADC_Channel8=8,
+    ADC_Channel9=9,
+#endif // __SAMD21J18A__
+    ADC_Channel10=10,
+    ADC_Channel11=11,
+#if defined __SAMD21J18A__
+    ADC_Channel12=12,
+    ADC_Channel13=13,
+    ADC_Channel14=14,
+    ADC_Channel15=15,
+#endif // __SAMD21J18A__
+    ADC_Channel16=16,
+    ADC_Channel17=17,
+    ADC_Channel18=18,
+    ADC_Channel19=19,
+    DAC_Channel0,
+} EAnalogChannel ;
+
+// Definitions for TC channels
+typedef enum _ETCChannel
+{
+    NOT_ON_TIMER=-1,
+    TCC0_CH0 = (0<<8)|(0),
+    TCC0_CH1 = (0<<8)|(1),
+    TCC0_CH2 = (0<<8)|(2),
+    TCC0_CH3 = (0<<8)|(3),
+    TCC0_CH4 = (0<<8)|(0), // Channel 4 is 0!
+    TCC0_CH5 = (0<<8)|(1), // Channel 5 is 1!
+    TCC0_CH6 = (0<<8)|(2), // Channel 6 is 2!
+    TCC0_CH7 = (0<<8)|(3), // Channel 7 is 3!
+    TCC1_CH0 = (1<<8)|(0),
+    TCC1_CH1 = (1<<8)|(1),
+    TCC1_CH2 = (1<<8)|(0), // Channel 2 is 0!
+    TCC1_CH3 = (1<<8)|(1), // Channel 3 is 1!
+    TCC2_CH0 = (2<<8)|(0),
+    TCC2_CH1 = (2<<8)|(1),
+    TCC2_CH2 = (2<<8)|(0), // Channel 2 is 0!
+    TCC2_CH3 = (2<<8)|(1), // Channel 3 is 1!
+    TC3_CH0  = (3<<8)|(0),
+    TC3_CH1  = (3<<8)|(1),
+    TC4_CH0  = (4<<8)|(0),
+    TC4_CH1  = (4<<8)|(1),
+    TC5_CH0  = (5<<8)|(0),
+    TC5_CH1  = (5<<8)|(1),
+#if defined __SAMD21J18A__
+    TC6_CH0  = (6<<8)|(0),
+    TC6_CH1  = (6<<8)|(1),
+    TC7_CH0  = (7<<8)|(0),
+    TC7_CH1  = (7<<8)|(1),
+#endif // __SAMD21J18A__
+} ETCChannel ;
+
+// Definitions for PWM channels
+typedef enum _EPWMChannel
+{
+    NOT_ON_PWM=-1,
+    PWM0_CH0=TCC0_CH0,
+    PWM0_CH1=TCC0_CH1,
+    PWM0_CH2=TCC0_CH2,
+    PWM0_CH3=TCC0_CH3,
+    PWM0_CH4=TCC0_CH4,
+    PWM0_CH5=TCC0_CH5,
+    PWM0_CH6=TCC0_CH6,
+    PWM0_CH7=TCC0_CH7,
+    PWM1_CH0=TCC1_CH0,
+    PWM1_CH1=TCC1_CH1,
+    PWM1_CH2=TCC1_CH2,
+    PWM1_CH3=TCC1_CH3,
+    PWM2_CH0=TCC2_CH0,
+    PWM2_CH1=TCC2_CH1,
+    PWM2_CH2=TCC2_CH2,
+    PWM2_CH3=TCC2_CH3,
+    PWM3_CH0=TC3_CH0,
+    PWM3_CH1=TC3_CH1,
+    PWM4_CH0=TC4_CH0,
+    PWM4_CH1=TC4_CH1,
+    PWM5_CH0=TC5_CH0,
+    PWM5_CH1=TC5_CH1,
+#if defined __SAMD21J18A__
+    PWM6_CH0=TC6_CH0,
+    PWM6_CH1=TC6_CH1,
+    PWM7_CH0=TC7_CH0,
+    PWM7_CH1=TC7_CH1,
+#endif // __SAMD21J18A__
+} EPWMChannel ;
+
 typedef enum
 {
     EXTERNAL_INT_0 = 0,
@@ -71,6 +170,9 @@ typedef struct _PinDescription
     uint32_t        ulPin ;
     EPioType        ulPinType ;
     uint32_t        ulPinAttribute ;
+    EAnalogChannel  ulADCChannelNumber ; /* ADC Channel number in the SAM device */
+    EPWMChannel     ulPWMChannel ;
+    ETCChannel      ulTCChannel ;
     EExt_Interrupts ulExtInt ;
 } PinDescription ;
 
