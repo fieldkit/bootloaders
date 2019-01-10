@@ -126,6 +126,8 @@ uint32_t* pulSketch_Start_Address;
   serial5_println("Program: 0x%x (0x%x)", __sketch_vectors_ptr, &__sketch_vectors_ptr);
   serial5_flush();
 
+  LED_off();
+
   // return;
 
   /* Rebase the Stack Pointer */
