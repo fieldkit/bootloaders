@@ -37,6 +37,8 @@ void busy_delay(uint32_t ms);
 
 void delay(uint32_t ms);
 
+uint32_t micros(void);
+
 uint32_t millis();
 
 void platform_default_sys_tick();
