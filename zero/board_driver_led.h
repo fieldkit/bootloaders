@@ -24,12 +24,10 @@
 #include "board_definitions.h"
 
 #if defined(BOARD_LED_PORT)
-inline void LED_init(void) { PORT->Group[BOARD_LED_PORT].DIRSET.reg = (1<<BOARD_LED_PIN); }
 inline void LED_on(void) { PORT->Group[BOARD_LED_PORT].OUTSET.reg = (1<<BOARD_LED_PIN); }
 inline void LED_off(void) { PORT->Group[BOARD_LED_PORT].OUTCLR.reg = (1<<BOARD_LED_PIN); }
 inline void LED_toggle(void) { PORT->Group[BOARD_LED_PORT].OUTTGL.reg = (1<<BOARD_LED_PIN); }
 #else
-inline void LED_init(void) { }
 inline void LED_on(void) { }
 inline void LED_off(void) { }
 inline void LED_toggle(void) { }
@@ -63,6 +61,7 @@ inline void LEDTX_toggle(void) { }
 extern "C" {
 #endif
 
+void LED_init();
 void LED_pulse();
 
 #ifdef __cplusplus

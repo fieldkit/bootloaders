@@ -199,16 +199,15 @@ int main(void)
 
   DEBUG_PIN_LOW;
 
-  /* Initialize LEDs */
-  LED_init();
-
   /* Start the sys tick (1 ms) */
   SysTick_Config(VARIANT_MCK / 1000);
-  // SysTick_Config(1000);
 
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   platform_setup();
   #endif
+
+  /* Initialize LEDs */
+  LED_init();
 
   began = 0;
 
