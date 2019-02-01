@@ -112,7 +112,7 @@ uint32_t* pulSketch_Start_Address;
     /* First tap */
     BOOT_STATE_DATA = BOOT_STATE_VALUE_DOUBLE_TAP;
 
-    busy_delay(500);
+    delay(500);
 
     /* Timeout happened, continue boot... */
     BOOT_STATE_DATA = 0;
