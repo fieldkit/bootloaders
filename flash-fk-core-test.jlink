@@ -1,0 +1,3 @@
+connect
+loadfile fk-core-test.bin,0x8000
+q
