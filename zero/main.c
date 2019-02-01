@@ -177,6 +177,10 @@ int main(void)
 
   /* Check for a firmware update. */
   board_initialize();
+
+  /* Start the sys tick (1 ms) */
+  SysTick_Config(VARIANT_MCK / 1000);
+
   #ifdef FK_BOOTLOADER_ENABLE_FLASH
   platform_setup();
   #endif
@@ -186,8 +190,6 @@ int main(void)
 
   /* We have determined we should stay in the monitor. */
   /* System initialization */
-  serial5_close();
-  board_initialize();
   __enable_irq();
 
 #if SAM_BA_INTERFACE == SAM_BA_UART_ONLY  ||  SAM_BA_INTERFACE == SAM_BA_BOTH_INTERFACES
@@ -200,13 +202,6 @@ int main(void)
 #endif
 
   DEBUG_PIN_LOW;
-
-  /* Start the sys tick (1 ms) */
-  SysTick_Config(VARIANT_MCK / 1000);
-
-  #ifdef FK_BOOTLOADER_ENABLE_FLASH
-  platform_setup();
-  #endif
 
   /* Initialize LEDs */
   LED_init();
