@@ -1,0 +1,5 @@
+connect
+loadbin bootloader-feather_m4-v2.0.0-adafruit.9.bin, 0x00000000
+r
+g
+q
