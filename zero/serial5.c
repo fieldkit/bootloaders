@@ -121,6 +121,18 @@ void serial5_println(const char *f, ...) {
     #endif
 }
 
+void serial5_printstr(const char *ptr, size_t length) {
+    if (!opened) {
+        return;
+    }
+
+    #ifdef FK_BOOTLOADER_ENABLE_SERIAL5
+    for (size_t i = 0; i < length; ++i) {
+        uart_write_byte(COMM_USART_MODULE, ptr[i]);
+    }
+    #endif
+}
+
 void serial5_printf(const char *f, ...) {
     if (!opened) {
         return;

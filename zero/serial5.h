@@ -19,6 +19,8 @@ void serial5_printf(const char *ptr, ...) __attribute__((format(printf, 1, 2)));
 
 void serial5_println(const char *ptr, ...) __attribute__((format(printf, 1, 2)));
 
+void serial5_printstr(const char *ptr, size_t length);
+
 void serial5_flush();
 
 #ifdef __cplusplus
