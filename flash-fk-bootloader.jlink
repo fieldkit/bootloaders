@@ -1,3 +1,4 @@
 connect
 loadfile build/zero/fk-bootloaders-samd21large.bin
+r
 q
