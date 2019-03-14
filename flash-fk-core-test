@@ -2,4 +2,9 @@
 
 PATH=~/tools/JLink_Linux_V640b_x86_64:$PATH
 
-JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 -autoconnect 1 -commanderscript flash-fk-core-test.jlink
+JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 -autoconnect 1 <<EOF
+connect
+loadfile fk-core-test.bin,0x8000
+r
+q
+EOF

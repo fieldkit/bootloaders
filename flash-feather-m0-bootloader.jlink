@@ -1,3 +1,0 @@
-connect
-loadfile feather-m0-bootloader.hex
-q
