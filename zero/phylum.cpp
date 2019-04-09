@@ -49,6 +49,10 @@ Geometry &TinyFlashStorageBackend::geometry() {
     return geometry_;
 }
 
+void TinyFlashStorageBackend::geometry(phylum::Geometry g) {
+    geometry_ = g;
+}
+
 bool TinyFlashStorageBackend::erase(block_index_t block) {
     auto address = get_sf_address(geometry_, BlockAddress{ block, 0 });
     flash_erase(fmem_, address);
