@@ -2,6 +2,8 @@
 # This Makefile calls the default, unmodified one in the bootloader directory.
 #
 
+BUILD ?= $(abspath build)
+
 all: build
 
 gitdeps:
@@ -12,12 +14,12 @@ loader/secrets.h:
 	cp loader/secrets.h.template loader/secrets.h
 
 build: gitdeps loader/secrets.h
-	mkdir -p build
-	cd build && cmake ../
-	$(MAKE) -C build
+	mkdir -p $(BUILD)
+	cd $(BUILD) && cmake ../
+	$(MAKE) -C $(BUILD)
 
 clean:
-	rm -rf build
+	rm -rf $(BUILD)
 
 veryclean: clean
 	rm -rf gitdeps
