@@ -13,10 +13,10 @@ if [ ! -f $BOOTLOADER ]; then
     exit
 fi
 
-TEST=fk-core-test.bin
+TEST=fk-naturalist-test.bin
 
 if [ ! -f $TEST ]; then
-    TEST=../core/build/firmware/test/fk-core-test.bin
+    TEST=../naturalist/build/firmware/test/fk-naturalist-test.bin
 fi
 
 if [ ! -f $TEST ]; then
