@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=~/tools/JLink_Linux_V640b_x86_64:$PATH
+PATH=~/tools/jlink:$PATH
 
 BOOTLOADER=build/zero/fk-bootloaders-samd21large.bin
 

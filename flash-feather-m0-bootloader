@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=~/tools/JLink_Linux_V618c_x86_64:$PATH
+PATH=~/tools/jlink:$PATH
 
 JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 <<EOF
 exitonerror 1
