@@ -5,3 +5,4 @@ zero/samd21_sam_ba.hex
 secrets.h
 gitdeps
 dependencies.cmake
+jlink.log

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PATH=~/tools/JLink_Linux_V644i_x86_64:$PATH
+
+BOOTLOADER=bootloader-grandcentral_m4-v3.6.0.bin
+
+JLinkExe <<EOF
+exitonerror 1
+log jlink.log
+si 1
+device ATSAMD51P20
+speed 4000
+connect
+hwinfo
+r
+sleep 10
+readap 3
+regs
+st
+mem16 0x41004000, 2
+mem16 0x41004012, 1
+loadfile $BOOTLOADER
+r
+q
+EOF

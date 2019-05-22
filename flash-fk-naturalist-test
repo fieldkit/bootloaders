@@ -24,7 +24,7 @@ if [ ! -f $TEST ]; then
     exit
 fi
 
-JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 -autoconnect 1 <<EOF
+JLinkExe -if SWD -device ATSAMD21G18 -speed 4000 <<EOF
 exitonerror 1
 connect
 sleep 100

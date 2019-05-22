@@ -2,7 +2,8 @@
 
 PATH=~/tools/JLink_Linux_V640b_x86_64:$PATH
 
-JLinkExe -if SWD -device ATSAMD51J19 -speed 4000 -autoconnect 1 <<EOF
+JLinkExe -if SWD -device ATSAMD51J19 -speed 4000 <<EOF
+exitonerror 1
 connect
 loadbin bootloader-feather_m4-v2.0.0-adafruit.9.bin, 0x00000000
 r
