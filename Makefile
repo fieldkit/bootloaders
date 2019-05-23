@@ -13,10 +13,19 @@ gitdeps:
 loader/secrets.h:
 	cp loader/secrets.h.template loader/secrets.h
 
-build: gitdeps loader/secrets.h
-	mkdir -p $(BUILD)
-	cd $(BUILD) && cmake ../
-	$(MAKE) -C $(BUILD)
+build: m0 m4
+
+dependencies: gitdeps loader/secrets.h
+
+m0: dependencies
+	mkdir -p build/m0
+	cd build/m0 && cmake -D TARGET_M0=ON ../../
+	cd build/m0 && $(MAKE)
+
+m4: dependencies
+	mkdir -p build/m4
+	cd build/m4 && cmake -D TARGET_M4=ON ../../
+	cd build/m4 && $(MAKE)
 
 clean:
 	rm -rf $(BUILD)
