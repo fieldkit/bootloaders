@@ -31,6 +31,7 @@ public:
     bool erase(phylum::block_index_t block) override;
     bool read(phylum::BlockAddress addr, void *d, size_t n) override;
     bool write(phylum::BlockAddress addr, void *d, size_t n) override;
+    bool eraseAll() override;
 };
 
 class FirmwareManager {
