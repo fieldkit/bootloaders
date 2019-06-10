@@ -6,7 +6,6 @@
 
   This repository contains the customized bootloader for FK devices.
 
-
 * Features
 
   Notable features include:
@@ -17,10 +16,37 @@
 
 * Flashing
 
- 1. Download and install JLink software.
- 2. The JLink software needs to be in your PATH.
- 3. Attach USB cable (for power)
- 4. Attach JLink segger to SWD connector on the board.
- 5. Open a terminal and run ./flash-fk-bootloader
-    If you see permissions issues, you may need to run this with sudo. Linux users can adjust udev rules to allow regular users to talk to the programmer.
+  1. Download and install JLink software.
+  2. The JLink software needs to be in your PATH.
+  3. Attach USB cable (for power)
+  4. Attach JLink segger to SWD connector on the board.
+  5. Open a terminal and run ./flash-fk-bootloader
+     If you see permissions issues, you may need to run this with sudo. Linux users can adjust udev rules to allow regular users to talk to the programmer.
 
+* Debug Console Output
+
+  1. Download and install JLink software (same as for flashing)
+  2. The JLink software needs to be in your PATH.
+  3. Run JLinkGDBServer
+
+*** M4:
+
+    #+BEGIN_SRC sh
+      JLinkGDBServer -if SWD -device ATSAMD51P20
+    #+END_SRC
+
+*** M0:
+
+    #+BEGIN_SRC sh
+      JLinkGDBServer -if SWD -device ATSAMD21G18
+    #+END_SRC
+
+    You can leave this running in the background, only restarting when you've broken the SWD connection somehow.
+
+    4. Run JLinkRTTClient
+
+    #+BEGIN_SRC sh
+      JLinkRTTClient
+    #+END_SRC
+
+    You can also leave this running, it'll echo the debug output to the terminal.
