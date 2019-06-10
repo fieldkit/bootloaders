@@ -1,0 +1,38 @@
+#!/bin/bash
+
+PATH=~/tools/jlink:$PATH
+
+BOOTLOADER=bootloader-grandcentral_m4-v3.6.0.bin
+
+TEST=darwin-memory-test.bin
+
+if [ ! -f $TEST ]; then
+    TEST=../../conservify/tests/darwin-memory-test/build/darwin-memory-test.bin
+fi
+
+if [ ! -f $TEST ]; then
+    echo "Missing test firmware"
+    exit
+fi
+
+JLinkExe <<EOF
+exitonerror 1
+log jlink.log
+si 1
+device ATSAMD51P20
+speed 4000
+connect
+hwinfo
+r
+sleep 10
+readap 3
+regs
+st
+mem16 0x41004000, 2
+mem16 0x41004012, 1
+loadfile $BOOTLOADER
+sleep 10
+loadfile $TEST,0x4000
+r
+q
+EOF
