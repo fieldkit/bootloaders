@@ -20,7 +20,7 @@ exitonerror 1
 log jlink.log
 si 1
 device ATSAMD51P20
-speed 4000
+speed 1000
 connect
 hwinfo
 r
@@ -30,6 +30,8 @@ regs
 st
 mem16 0x41004000, 2
 mem16 0x41004012, 1
+mem32 0x1FF80000, 5
+erase
 loadfile $BOOTLOADER
 sleep 10
 loadfile $TEST,0x4000
