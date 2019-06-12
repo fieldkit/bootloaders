@@ -2,7 +2,7 @@
 
 PATH=~/tools/jlink:$PATH
 
-BOOTLOADER=build/zero/fk-bootloaders-samd21large.bin
+BOOTLOADER=build/m0/zero/fk-bootloaders-samd21large.bin
 
 JLinkExe -if SWD -device ATSAMD21G18 <<EOF
 exitonerror 1
