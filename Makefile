@@ -13,7 +13,7 @@ gitdeps:
 loader/secrets.h:
 	cp loader/secrets.h.template loader/secrets.h
 
-build: m0 m4
+build: m0
 
 dependencies: gitdeps loader/secrets.h
 
